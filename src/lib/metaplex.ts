@@ -8,8 +8,8 @@ import {
 import {
   generateSigner,
   percentAmount,
-  createGenericFile,
   publicKey,
+  createGenericFile,
 } from '@metaplex-foundation/umi';
 import { walletAdapterIdentity } from '@metaplex-foundation/umi-signer-wallet-adapters';
 import { WalletContextState } from '@solana/wallet-adapter-react';
@@ -22,7 +22,6 @@ import {
 } from '@solana/web3.js';
 import { Pattern303, NetworkType } from '../types/pattern';
 import { SOLANA_NETWORKS } from './constants';
-import { patternToSvg, patternToCompactSvg, svgToDataUri } from './patternToSvg';
 
 // Compact pattern encoding for on-chain storage
 // Format: name|creator|tempo|waveform|cutoff|resonance|envMod|decay|accent|steps
@@ -223,6 +222,68 @@ export async function mintPatternNFT(
     mintAddress,
     explorerUrl,
     feeSignature,
+  };
+}
+
+// Free minting for 303 token holders (no treasury fee)
+export async function mintPatternNFTFree(
+  wallet: WalletContextState,
+  pattern: Pattern303,
+  network: NetworkType
+): Promise<MintResult> {
+  if (!wallet.publicKey || !wallet.signTransaction) {
+    throw new Error('Wallet not connected');
+  }
+
+  const endpoint = SOLANA_NETWORKS[network];
+
+  // Create Umi instance for NFT minting
+  const umi = createUmi(endpoint)
+    .use(mplTokenMetadata())
+    .use(walletAdapterIdentity(wallet));
+
+  // Encode pattern data compactly for on-chain storage
+  const stepsHex = pattern.steps.map(step => {
+    const byte = (step.pitch & 0xF) << 4 |
+                 ((step.octave + 1) & 0x3) << 2 |
+                 (step.gate ? 2 : 0) |
+                 (step.accent ? 1 : 0);
+    return byte.toString(16).padStart(2, '0') + (step.slide ? '1' : '0');
+  }).join('');
+
+  const w = pattern.waveform === 'saw' ? 's' : 'q';
+  const params = [pattern.cutoff, pattern.resonance, pattern.envMod, pattern.decay, pattern.accent]
+    .map(v => v.toString(16).padStart(2, '0')).join('');
+
+  const metadataUri = `https://p303.xyz/${pattern.tempo}/${w}/${params}/${stepsHex}`;
+
+  console.log(`[FREE MINT] Metadata URI: ${metadataUri}`);
+  console.log(`[FREE MINT] URI length: ${metadataUri.length} chars`);
+
+  // Generate mint signer
+  const mint = generateSigner(umi);
+
+  // Create NFT (no treasury fee payment)
+  const { signature } = await createNft(umi, {
+    mint,
+    name: pattern.name.slice(0, 32),
+    symbol: 'P303',
+    uri: metadataUri,
+    sellerFeeBasisPoints: percentAmount(5),
+    isCollection: false,
+  }).sendAndConfirm(umi);
+
+  const mintAddress = mint.publicKey.toString();
+  const signatureStr = Buffer.from(signature).toString('base64');
+
+  const explorerUrl = network === 'devnet'
+    ? `https://explorer.solana.com/address/${mintAddress}?cluster=devnet`
+    : `https://explorer.solana.com/address/${mintAddress}`;
+
+  return {
+    signature: signatureStr,
+    mintAddress,
+    explorerUrl,
   };
 }
 

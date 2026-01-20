@@ -4,7 +4,7 @@ import { ProfilePage } from './components/ProfilePage';
 import { DiscoverPage } from './components/DiscoverPage';
 import { WalletContextProvider } from './components/WalletProvider';
 import { WalletButton } from './components/WalletButton';
-import { Pattern303, DEFAULT_PATTERN, DEFAULT_STEP } from './types/pattern';
+import { Pattern303 } from './types/pattern';
 
 type Page = 'create' | 'profile' | 'discover';
 

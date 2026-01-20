@@ -1,7 +1,4 @@
-import { Connection, PublicKey } from '@solana/web3.js';
-import { Pattern303, DEFAULT_STEP } from '../types/pattern';
-import { SOLANA_NETWORKS } from './constants';
-import { NetworkType } from '../types/pattern';
+import { Pattern303, DEFAULT_STEP, NetworkType } from '../types/pattern';
 
 export interface PatternNFT {
   mintAddress: string;
@@ -77,14 +74,11 @@ export async function fetchOwnedPatterns(
   walletAddress: string,
   network: NetworkType
 ): Promise<PatternNFT[]> {
-  const endpoint = SOLANA_NETWORKS[network];
-  const connection = new Connection(endpoint, 'confirmed');
-
   try {
     // Use Metaplex DAS API for devnet/mainnet
     const dasEndpoint = network === 'devnet'
       ? 'https://devnet.helius-rpc.com/?api-key=15319bf4-5b40-4958-ac8d-6313aa55eb92'
-      : endpoint;
+      : 'https://mainnet.helius-rpc.com/?api-key=15319bf4-5b40-4958-ac8d-6313aa55eb92';
 
     const response = await fetch(dasEndpoint, {
       method: 'POST',
@@ -140,6 +134,36 @@ export async function fetchOwnedPatterns(
   }
 }
 
+// Local storage key for tracking known P303 mints
+const KNOWN_MINTS_KEY = 'pattern303_known_mints';
+
+// Save a newly minted pattern to local tracking
+export function trackMintedPattern(mintAddress: string, name: string, owner: string) {
+  try {
+    const stored = localStorage.getItem(KNOWN_MINTS_KEY);
+    const mints: { mint: string; name: string; owner: string; timestamp: number }[] = stored ? JSON.parse(stored) : [];
+
+    // Avoid duplicates
+    if (!mints.some(m => m.mint === mintAddress)) {
+      mints.unshift({ mint: mintAddress, name, owner, timestamp: Date.now() });
+      // Keep last 500 mints
+      localStorage.setItem(KNOWN_MINTS_KEY, JSON.stringify(mints.slice(0, 500)));
+    }
+  } catch (e) {
+    console.warn('Failed to track minted pattern:', e);
+  }
+}
+
+// Get locally tracked mints
+export function getTrackedMints(): { mint: string; name: string; owner: string; timestamp: number }[] {
+  try {
+    const stored = localStorage.getItem(KNOWN_MINTS_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
 // Fetch recent P303 NFTs (for discovery/browse)
 export async function fetchRecentPatterns(
   network: NetworkType,
@@ -150,55 +174,54 @@ export async function fetchRecentPatterns(
       ? 'https://devnet.helius-rpc.com/?api-key=15319bf4-5b40-4958-ac8d-6313aa55eb92'
       : 'https://mainnet.helius-rpc.com/?api-key=15319bf4-5b40-4958-ac8d-6313aa55eb92';
 
-    // Search for NFTs with P303 in the name or by collection
-    const response = await fetch(dasEndpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: 'pattern303-search',
-        method: 'searchAssets',
-        params: {
-          page: 1,
-          limit,
-          // Search for P303 NFTs
-          conditionType: 'all',
-          interface: 'V1_NFT',
-        },
-      }),
-    });
+    // Get locally tracked mints first
+    const trackedMints = getTrackedMints().slice(0, limit);
 
-    const data = await response.json();
-
-    if (!data.result?.items) {
+    if (trackedMints.length === 0) {
       return [];
     }
 
-    const patterns: PatternNFT[] = [];
+    // Fetch each tracked mint in parallel
+    const fetchPromises = trackedMints.map(async ({ mint, owner: trackedOwner }) => {
+      try {
+        const response = await fetch(dasEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: `p303-${mint}`,
+            method: 'getAsset',
+            params: { id: mint },
+          }),
+        });
 
-    for (const item of data.result.items) {
-      const isP303 = item.content?.metadata?.symbol === 'P303' ||
-                     item.content?.json_uri?.includes('p303.xyz');
+        const data = await response.json();
+        const item = data.result;
 
-      if (!isP303) continue;
+        if (!item) return null;
 
-      const uri = item.content?.json_uri || '';
-      const pattern = decodePatternFromUri(uri);
+        const uri = item.content?.json_uri || '';
+        const pattern = decodePatternFromUri(uri);
 
-      if (pattern) {
+        if (!pattern) return null;
+
         pattern.name = item.content?.metadata?.name || 'Pattern 303';
-        patterns.push({
+
+        return {
           mintAddress: item.id,
           name: item.content?.metadata?.name || 'Pattern 303',
-          owner: item.ownership?.owner || 'Unknown',
+          owner: item.ownership?.owner || trackedOwner || 'Unknown',
           pattern,
           uri,
           image: item.content?.links?.image,
-        });
+        } as PatternNFT;
+      } catch {
+        return null;
       }
-    }
+    });
 
-    return patterns;
+    const results = await Promise.all(fetchPromises);
+    return results.filter((p): p is PatternNFT => p !== null);
   } catch (e) {
     console.error('Failed to fetch recent patterns:', e);
     return [];

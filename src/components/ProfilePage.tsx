@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useOwnedPatterns } from '../hooks/usePatternNFTs';
+import { useNomDeGuerre } from '../hooks/useNomDeGuerre';
 import { PatternGrid } from './PatternCard';
 import { AsciiCamera, AsciiAvatar, AsciiPresetPicker, encodeAsciiArt, decodeAsciiArt } from './AsciiCamera';
 import { PatternNFT } from '../lib/patternNFT';
@@ -15,8 +16,25 @@ interface ProfilePageProps {
 export function ProfilePage({ onLoadPattern }: ProfilePageProps) {
   const { publicKey, connected } = useWallet();
   const { patterns, loading, error, refresh } = useOwnedPatterns('devnet');
+  const {
+    nomDeGuerre,
+    loading: ndgLoading,
+    error: ndgError,
+    isMinting: ndgMinting,
+    mint: mintNdg,
+    change: changeNdg,
+    hasNomDeGuerre,
+    validateUsername,
+    isUsernameTaken,
+    mintFee,
+    changeFee,
+  } = useNomDeGuerre('devnet');
+
   const [avatarMode, setAvatarMode] = useState<AvatarMode>('none');
   const [avatar, setAvatar] = useState<string | null>(null);
+  const [showNdgForm, setShowNdgForm] = useState(false);
+  const [ndgInput, setNdgInput] = useState('');
+  const [ndgValidation, setNdgValidation] = useState<{ valid: boolean; error?: string } | null>(null);
 
   // Load avatar from localStorage when wallet connects
   useEffect(() => {
@@ -27,6 +45,20 @@ export function ProfilePage({ onLoadPattern }: ProfilePageProps) {
       setAvatar(null);
     }
   }, [publicKey]);
+
+  // Validate username as user types
+  useEffect(() => {
+    if (ndgInput) {
+      const validation = validateUsername(ndgInput);
+      if (validation.valid && isUsernameTaken(ndgInput)) {
+        setNdgValidation({ valid: false, error: 'Username is already taken' });
+      } else {
+        setNdgValidation(validation);
+      }
+    } else {
+      setNdgValidation(null);
+    }
+  }, [ndgInput, validateUsername, isUsernameTaken]);
 
   const handleSetAvatar = (ascii: string) => {
     const encoded = encodeAsciiArt(ascii);
@@ -48,6 +80,23 @@ export function ProfilePage({ onLoadPattern }: ProfilePageProps) {
     if (onLoadPattern) {
       onLoadPattern(patternNFT.pattern);
     }
+  };
+
+  const handleBurnPattern = () => {
+    refresh();
+  };
+
+  const handleNdgSubmit = async () => {
+    if (!ndgInput || !ndgValidation?.valid) return;
+
+    if (hasNomDeGuerre) {
+      await changeNdg(ndgInput, false); // TODO: Check if 303 holder
+    } else {
+      await mintNdg(ndgInput);
+    }
+
+    setShowNdgForm(false);
+    setNdgInput('');
   };
 
   if (!connected) {
@@ -114,10 +163,39 @@ export function ProfilePage({ onLoadPattern }: ProfilePageProps) {
 
           {/* Profile Info */}
           <div className="flex-1">
-            <h2 className="text-xl font-bold text-synth-silver mb-2">My Profile</h2>
+            {/* Nom de Guerre */}
+            <div className="mb-2">
+              {ndgLoading ? (
+                <div className="h-8 bg-gray-700 rounded animate-pulse w-32" />
+              ) : nomDeGuerre ? (
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl font-bold text-synth-accent">
+                    {nomDeGuerre.username}
+                  </h2>
+                  <span className="text-xs text-gray-500 bg-gray-700 px-2 py-0.5 rounded">
+                    nom de guerre
+                  </span>
+                  <button
+                    onClick={() => setShowNdgForm(true)}
+                    className="text-xs text-gray-500 hover:text-synth-accent"
+                  >
+                    change
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowNdgForm(true)}
+                  className="text-synth-accent hover:text-orange-400 text-sm"
+                >
+                  + Claim your nom de guerre
+                </button>
+              )}
+            </div>
+
             <p className="text-sm text-gray-400 font-mono break-all">
               {publicKey?.toBase58()}
             </p>
+
             <div className="mt-4 flex gap-4 text-sm">
               <div className="text-center">
                 <div className="text-2xl font-bold text-synth-accent">{patterns.length}</div>
@@ -126,6 +204,74 @@ export function ProfilePage({ onLoadPattern }: ProfilePageProps) {
             </div>
           </div>
         </div>
+
+        {/* Nom de Guerre Form */}
+        {showNdgForm && (
+          <div className="mt-6 pt-6 border-t border-gray-700">
+            <h3 className="text-sm font-bold text-synth-silver mb-4">
+              {hasNomDeGuerre ? 'Change your Nom de Guerre' : 'Claim your Nom de Guerre'}
+            </h3>
+            <div className="flex gap-2 items-start">
+              <div className="flex-1">
+                <input
+                  type="text"
+                  value={ndgInput}
+                  onChange={(e) => setNdgInput(e.target.value.toLowerCase())}
+                  placeholder="Enter username (3-20 chars)"
+                  className="w-full px-3 py-2 bg-black border border-gray-600 rounded text-white focus:border-synth-accent focus:outline-none"
+                  disabled={ndgMinting}
+                />
+                {ndgValidation && !ndgValidation.valid && (
+                  <p className="text-red-400 text-xs mt-1">{ndgValidation.error}</p>
+                )}
+                {ndgError && (
+                  <p className="text-red-400 text-xs mt-1">{ndgError}</p>
+                )}
+              </div>
+              <button
+                onClick={handleNdgSubmit}
+                disabled={!ndgValidation?.valid || ndgMinting}
+                className={`px-4 py-2 rounded font-bold transition-colors ${
+                  ndgValidation?.valid && !ndgMinting
+                    ? 'bg-synth-accent hover:bg-orange-600 text-white'
+                    : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                {ndgMinting ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Minting...
+                  </span>
+                ) : hasNomDeGuerre ? (
+                  <span className="flex flex-col items-center text-xs">
+                    <span>Change</span>
+                    <span className="opacity-70">{changeFee} SOL</span>
+                  </span>
+                ) : (
+                  <span className="flex flex-col items-center text-xs">
+                    <span>Claim</span>
+                    <span className="opacity-70">{mintFee} SOL</span>
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => {
+                  setShowNdgForm(false);
+                  setNdgInput('');
+                }}
+                className="px-3 py-2 text-gray-400 hover:text-white"
+              >
+                Cancel
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Your nom de guerre is your unique identity on Pattern 303. It's stored as an NFT on Solana.
+            </p>
+          </div>
+        )}
 
         {/* ASCII Camera */}
         {avatarMode === 'camera' && (
@@ -165,6 +311,9 @@ export function ProfilePage({ onLoadPattern }: ProfilePageProps) {
           loading={loading}
           error={error}
           onSelect={handleSelectPattern}
+          onBurn={handleBurnPattern}
+          canBurn={true}
+          network="devnet"
           emptyMessage="You haven't minted any patterns yet. Create a pattern and mint it as an NFT!"
         />
       </div>

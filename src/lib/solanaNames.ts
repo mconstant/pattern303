@@ -1,5 +1,3 @@
-import { Connection, PublicKey } from '@solana/web3.js';
-import { SOLANA_NETWORKS } from './constants';
 import { NetworkType } from '../types/pattern';
 
 // Known domain TLDs on Solana
@@ -36,21 +34,28 @@ export async function resolveWalletToDomain(
 }
 
 // Resolve using Bonfida SNS API
-async function resolveSNS(walletAddress: string, network: NetworkType): Promise<string | null> {
+async function resolveSNS(walletAddress: string, _network: NetworkType): Promise<string | null> {
   try {
-    // Use Bonfida's reverse lookup API
-    const endpoint = network === 'devnet'
-      ? 'https://sns-sdk-proxy.bonfida.workers.dev/favorite-domain/'
-      : 'https://sns-sdk-proxy.bonfida.workers.dev/favorite-domain/';
+    // Validate wallet address format (basic check)
+    if (!walletAddress || walletAddress.length < 32 || walletAddress.length > 44) {
+      return null;
+    }
 
+    // Use Bonfida's reverse lookup API
+    const endpoint = 'https://sns-sdk-proxy.bonfida.workers.dev/favorite-domain/';
     const response = await fetch(`${endpoint}${walletAddress}`);
 
     if (!response.ok) return null;
 
     const data = await response.json();
 
-    if (data.result) {
-      return `${data.result}.sol`;
+    // Check for valid result - must be a string and not an error
+    if (data.result && typeof data.result === 'string' && !data.error) {
+      // Validate the domain name format (should be alphanumeric with hyphens)
+      const domainName = data.result;
+      if (/^[a-zA-Z0-9-]+$/.test(domainName)) {
+        return `${domainName}.sol`;
+      }
     }
 
     return null;
@@ -62,6 +67,11 @@ async function resolveSNS(walletAddress: string, network: NetworkType): Promise<
 // Resolve using AllDomains API (supports multiple TLDs)
 async function resolveAllDomains(walletAddress: string): Promise<ResolvedName | null> {
   try {
+    // Validate wallet address format
+    if (!walletAddress || walletAddress.length < 32 || walletAddress.length > 44) {
+      return null;
+    }
+
     // AllDomains API for reverse lookup
     const response = await fetch(
       `https://api.alldomains.id/reverse-lookup/${walletAddress}`
@@ -71,11 +81,14 @@ async function resolveAllDomains(walletAddress: string): Promise<ResolvedName | 
 
     const data = await response.json();
 
-    if (data.domains && data.domains.length > 0) {
+    if (data.domains && Array.isArray(data.domains) && data.domains.length > 0) {
       const domain = data.domains[0];
-      // Extract TLD
-      const tld = DOMAIN_TLDS.find(t => domain.endsWith(t)) || '';
-      return { domain, tld };
+      // Validate domain format
+      if (typeof domain === 'string' && domain.includes('.')) {
+        // Extract TLD
+        const tld = DOMAIN_TLDS.find(t => domain.endsWith(t)) || '';
+        return { domain, tld };
+      }
     }
 
     return null;
@@ -105,6 +118,10 @@ export async function getDisplayName(
 // Hook-friendly version that caches results
 const nameCache = new Map<string, string>();
 
+export function clearNameCache() {
+  nameCache.clear();
+}
+
 export async function getCachedDisplayName(
   walletAddress: string,
   network: NetworkType = 'devnet'
@@ -112,11 +129,21 @@ export async function getCachedDisplayName(
   const cacheKey = `${walletAddress}-${network}`;
 
   if (nameCache.has(cacheKey)) {
-    return nameCache.get(cacheKey)!;
+    const cached = nameCache.get(cacheKey)!;
+    // Don't return cached values that look like errors
+    if (!cached.includes('Invalid') && !cached.includes('error')) {
+      return cached;
+    }
+    // Clear bad cache entry
+    nameCache.delete(cacheKey);
   }
 
   const displayName = await getDisplayName(walletAddress, network);
-  nameCache.set(cacheKey, displayName);
+
+  // Only cache valid-looking results
+  if (displayName && !displayName.includes('Invalid') && !displayName.includes('error')) {
+    nameCache.set(cacheKey, displayName);
+  }
 
   return displayName;
 }

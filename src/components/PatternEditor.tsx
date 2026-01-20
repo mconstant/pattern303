@@ -31,8 +31,8 @@ export function PatternEditor({ initialPattern, onPatternChange }: PatternEditor
     clearPattern,
   } = usePattern();
 
-  const { isPlaying, currentStep, togglePlayback, stop } = useSynth(pattern);
-  const { displayName, walletAddress } = useSolanaName('devnet');
+  const { isPlaying, togglePlayback, stop } = useSynth(pattern);
+  const { displayName } = useSolanaName('devnet');
   const hasAutoSetCreator = useRef(false);
 
   // Auto-populate creator with wallet display name (domain or short address)
