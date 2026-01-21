@@ -494,7 +494,7 @@ export function PatternSheet({
                       <span className="text-gray-300">·</span>
                     ) : (
                       <span className={step.octave !== 0 ? 'font-bold' : 'text-gray-400'}>
-                        {step.octave === 1 ? '+' : step.octave === -1 ? '-' : '·'}
+                        {step.octave === 1 ? '▲' : step.octave === -1 ? '▼' : '—'}
                       </span>
                     )}
                   </td>
