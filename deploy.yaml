@@ -22,8 +22,8 @@ services:
         accept:
           - "pattern303.akash.network"  # Optional: custom domain
     env:
-      VITE_TREASURY_WALLET: "${VITE_TREASURY_WALLET}"
-      VITE_303_TOKEN_MINT: "${VITE_303_TOKEN_MINT}"
+      - VITE_TREASURY_WALLET=${VITE_TREASURY_WALLET}
+      - VITE_303_TOKEN_MINT=${VITE_303_TOKEN_MINT}
 
 profiles:
   compute:
