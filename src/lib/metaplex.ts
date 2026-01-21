@@ -46,7 +46,8 @@ export function encodePatternData(pattern: Pattern303): string {
   const stepsHex = pattern.steps.map(step => {
     const pitch = step.pitch & 0x0F; // 4 bits
     const octave = (step.octave + 1) & 0x03; // 2 bits (0,1,2)
-    const gate = step.gate ? 1 : 0;
+    // Handle GateType: 'note' or 'tie' = gate on, 'rest' = gate off
+    const gate = (step.gate === 'note' || step.gate === 'tie') ? 1 : 0;
     const accent = step.accent ? 1 : 0;
     const slide = step.slide ? 1 : 0;
     // Pack: ppppooGA (pitch, octave, gate, accent) + 0000000S (slide)
@@ -236,9 +237,11 @@ export async function mintPatternNFT(
   // Encode pattern data compactly for on-chain storage
   // Use minimal encoding: just the essential step data as hex
   const stepsHex = pattern.steps.map(step => {
+    // Handle GateType: 'note' or 'tie' = gate on, 'rest' = gate off
+    const gateOn = step.gate === 'note' || step.gate === 'tie';
     const byte = (step.pitch & 0xF) << 4 |
                  ((step.octave + 1) & 0x3) << 2 |
-                 (step.gate ? 2 : 0) |
+                 (gateOn ? 2 : 0) |
                  (step.accent ? 1 : 0);
     return byte.toString(16).padStart(2, '0') + (step.slide ? '1' : '0');
   }).join('');
@@ -321,9 +324,11 @@ export async function mintPatternNFTFree(
 
   // Encode pattern data compactly for on-chain storage
   const stepsHex = pattern.steps.map(step => {
+    // Handle GateType: 'note' or 'tie' = gate on, 'rest' = gate off
+    const gateOn = step.gate === 'note' || step.gate === 'tie';
     const byte = (step.pitch & 0xF) << 4 |
                  ((step.octave + 1) & 0x3) << 2 |
-                 (step.gate ? 2 : 0) |
+                 (gateOn ? 2 : 0) |
                  (step.accent ? 1 : 0);
     return byte.toString(16).padStart(2, '0') + (step.slide ? '1' : '0');
   }).join('');

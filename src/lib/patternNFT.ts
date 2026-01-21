@@ -84,14 +84,29 @@ function getDasEndpoint(network: NetworkType): string {
 function extractPatternsFromItems(items: any[], ownerAddress?: string): PatternNFT[] {
   const patterns: PatternNFT[] = [];
 
+  console.log(`[P303] Extracting patterns from ${items.length} items`);
+
   for (const item of items) {
+    // Try multiple fields where the URI might be stored
+    const possibleUris = [
+      item.content?.json_uri,
+      item.content?.uri,
+      item.uri,
+      item.content?.metadata?.uri,
+    ].filter(Boolean);
+
     // Check if it's a P303 NFT by symbol or URI pattern
-    const isP303 = item.content?.metadata?.symbol === 'P303' ||
-                   item.content?.json_uri?.includes('p303.xyz');
+    const symbol = item.content?.metadata?.symbol;
+    const hasP303Uri = possibleUris.some(u => u?.includes('p303.xyz'));
+    const isP303 = symbol === 'P303' || hasP303Uri;
+
+    // Debug: Log each item being evaluated
+    console.log(`[P303] Item ${item.id}: symbol=${symbol}, hasP303Uri=${hasP303Uri}, uris=`, possibleUris);
 
     if (!isP303) continue;
 
-    const uri = item.content?.json_uri || '';
+    // Find the URI that contains pattern data
+    const uri = possibleUris.find(u => u?.includes('p303.xyz')) || possibleUris[0] || '';
     const pattern = decodePatternFromUri(uri);
 
     if (pattern) {
@@ -129,6 +144,10 @@ export async function fetchOwnedPatterns(
           ownerAddress: walletAddress,
           page: 1,
           limit: 100,
+          displayOptions: {
+            showFungible: false,
+            showNativeBalance: false,
+          },
         },
       }),
     });
@@ -136,9 +155,16 @@ export async function fetchOwnedPatterns(
     const data = await response.json();
 
     if (!data.result?.items) {
+      console.log('[P303] No items in response, full data:', JSON.stringify(data, null, 2).slice(0, 1000));
       return [];
     }
 
+    console.log(`[P303] Found ${data.result.items.length} owned NFTs`);
+
+    // Log first item in detail to understand structure
+    if (data.result.items.length > 0) {
+      console.log('[P303] First item structure:', JSON.stringify(data.result.items[0], null, 2).slice(0, 3000));
+    }
     return extractPatternsFromItems(data.result.items, walletAddress);
   } catch (e) {
     console.error('Failed to fetch owned patterns:', e);
