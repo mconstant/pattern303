@@ -13,7 +13,7 @@ services:
   web:
     # UPDATE THIS: Replace with your actual image from GitHub Container Registry
     # After GitHub Actions builds, it will be: ghcr.io/YOUR_USERNAME/pattern303:latest
-    image: ghcr.io/OWNER/pattern303:latest
+    image: ghcr.io/mconstant/pattern303:latest
     expose:
       - port: 80
         as: 80
