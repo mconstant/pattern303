@@ -1,9 +1,10 @@
 // Gate types: note (plays), tie (extends previous), rest (silence)
 export type GateType = 'note' | 'tie' | 'rest';
 
-// Pattern bank (I, II, III, IV) and section (A, B)
+// Pattern bank (I, II, III, IV), section (A, B), and pattern number (1-8)
 export type PatternBank = 'I' | 'II' | 'III' | 'IV';
 export type PatternSection = 'A' | 'B';
+export type PatternNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
 export interface Step {
   pitch: number; // 0-12 (C to C, semitones)
@@ -27,6 +28,7 @@ export interface Pattern303 {
   // Pattern organization
   bank?: PatternBank;
   section?: PatternSection;
+  patternNumber?: PatternNumber;
   // Freeform notes
   efxNotes?: string;
 }
@@ -56,5 +58,6 @@ export const DEFAULT_PATTERN: Pattern303 = {
   steps: Array(16).fill(null).map(() => ({ ...DEFAULT_STEP })),
   bank: 'I',
   section: 'A',
+  patternNumber: 1,
   efxNotes: '',
 };

@@ -58,7 +58,7 @@ export function MiniPatternSheet({ pattern, showTitle = true }: MiniPatternSheet
             </span>
             {pattern.bank && pattern.section && (
               <span style={{ fontSize: '6px', color: '#666', fontWeight: 'bold' }}>
-                {pattern.bank}-{pattern.section}
+                {pattern.bank}-{pattern.section}{pattern.patternNumber ? `-${pattern.patternNumber}` : ''}
               </span>
             )}
           </div>
@@ -215,6 +215,11 @@ export function MiniPatternSheet({ pattern, showTitle = true }: MiniPatternSheet
           by {pattern.creator}
         </div>
       )}
+
+      {/* Footer */}
+      <div className="relative text-center mt-1 pt-1" style={{ borderTop: '1px solid #ddd', fontSize: '4px', color: '#999' }}>
+        github.com/mconstant/pattern303
+      </div>
     </div>
   );
 }

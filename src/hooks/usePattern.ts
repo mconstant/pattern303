@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Pattern303, Step, DEFAULT_PATTERN, DEFAULT_STEP, PatternBank, PatternSection, GateType } from '../types/pattern';
+import { Pattern303, Step, DEFAULT_PATTERN, DEFAULT_STEP, PatternBank, PatternSection, PatternNumber, GateType } from '../types/pattern';
 
 const STORAGE_KEY = 'pattern303_draft';
 
@@ -79,6 +79,10 @@ export function usePattern() {
     setPattern(prev => ({ ...prev, section }));
   }, []);
 
+  const setPatternNumber = useCallback((patternNumber: PatternNumber) => {
+    setPattern(prev => ({ ...prev, patternNumber }));
+  }, []);
+
   const setEfxNotes = useCallback((efxNotes: string) => {
     setPattern(prev => ({ ...prev, efxNotes }));
   }, []);
@@ -131,6 +135,7 @@ export function usePattern() {
     setAccent,
     setBank,
     setSection,
+    setPatternNumber,
     setEfxNotes,
     updateStep,
     randomizePattern,

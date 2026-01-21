@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pattern303, Step, GateType, PatternBank, PatternSection, NetworkType } from '../types/pattern';
+import { Pattern303, Step, GateType, PatternBank, PatternSection, PatternNumber, NetworkType } from '../types/pattern';
 import { useMint } from '../hooks/useMint';
 import { useToken303 } from '../hooks/useToken303';
 import { getMintFee, getTreasuryWallet } from '../lib/metaplex';
@@ -7,6 +7,7 @@ import { getMintFee, getTreasuryWallet } from '../lib/metaplex';
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', 'C'];
 const BANKS: PatternBank[] = ['I', 'II', 'III', 'IV'];
 const SECTIONS: PatternSection[] = ['A', 'B'];
+const PATTERN_NUMBERS: PatternNumber[] = [1, 2, 3, 4, 5, 6, 7, 8];
 
 // Compact engineering dial for synth parameters
 function MiniDial({
@@ -96,6 +97,7 @@ interface PatternSheetProps {
   onNameChange?: (name: string) => void;
   onBankChange?: (bank: PatternBank) => void;
   onSectionChange?: (section: PatternSection) => void;
+  onPatternNumberChange?: (patternNumber: PatternNumber) => void;
   onEfxNotesChange?: (notes: string) => void;
   onTempoChange?: (tempo: number) => void;
   onWaveformChange?: (waveform: 'saw' | 'square') => void;
@@ -120,6 +122,7 @@ export function PatternSheet({
   onNameChange,
   onBankChange,
   onSectionChange,
+  onPatternNumberChange,
   onEfxNotesChange,
   onTempoChange,
   onWaveformChange,
@@ -238,6 +241,20 @@ export function PatternSheet({
                 disabled={!editable}
               >
                 {section}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-0.5">
+            {PATTERN_NUMBERS.map((num) => (
+              <button
+                key={num}
+                onClick={() => editable && onPatternNumberChange?.(num)}
+                className={`w-5 h-5 sm:w-6 sm:h-6 text-[10px] sm:text-xs font-bold border transition-colors ${
+                  pattern.patternNumber === num ? 'bg-black text-white border-black' : 'bg-white text-black border-gray-400'
+                } ${editable ? 'cursor-pointer hover:border-black' : ''}`}
+                disabled={!editable}
+              >
+                {num}
               </button>
             ))}
           </div>
@@ -539,6 +556,19 @@ export function PatternSheet({
           Click to edit | Gate: ●=Note —=Tie ○=Rest | ▲▼=Octave | ▶=Accent | ⌒=Slide
         </div>
       )}
+
+      {/* Footer */}
+      <div className="relative mt-3 pt-2 text-center" style={{ borderTop: '1px solid #ccc' }}>
+        <a
+          href="https://github.com/mconstant/pattern303"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[9px] font-mono hover:underline"
+          style={{ color: '#666' }}
+        >
+          github.com/mconstant/pattern303
+        </a>
+      </div>
 
       {/* Mint Result Overlay */}
       {showMintResult && (mintResult || mintError) && (

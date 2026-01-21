@@ -24,6 +24,7 @@ export function PatternEditor({ initialPattern, onPatternChange }: PatternEditor
     setAccent,
     setBank,
     setSection,
+    setPatternNumber,
     setEfxNotes,
     updateStep,
     randomizePattern,
@@ -56,6 +57,7 @@ export function PatternEditor({ initialPattern, onPatternChange }: PatternEditor
       onNameChange={setName}
       onBankChange={setBank}
       onSectionChange={setSection}
+      onPatternNumberChange={setPatternNumber}
       onEfxNotesChange={setEfxNotes}
       onTempoChange={setTempo}
       onWaveformChange={setWaveform}
