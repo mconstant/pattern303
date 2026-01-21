@@ -458,8 +458,8 @@ export function PatternSheet({
                       <select
                         value={step.pitch}
                         onChange={(e) => onStepChange?.(i, { pitch: parseInt(e.target.value) })}
-                        className="bg-transparent text-center w-full cursor-pointer outline-none font-bold p-0"
-                        style={{ color: '#000', fontSize: '9px' }}
+                        className="bg-transparent text-center w-full cursor-pointer outline-none font-bold p-0 appearance-none"
+                        style={{ color: '#000', fontSize: '9px', WebkitAppearance: 'none', MozAppearance: 'none' }}
                       >
                         {NOTE_NAMES.map((note, idx) => (
                           <option key={idx} value={idx}>{note}</option>
@@ -494,7 +494,7 @@ export function PatternSheet({
                       <span className="text-gray-300">·</span>
                     ) : (
                       <span className={step.octave !== 0 ? 'font-bold' : 'text-gray-400'}>
-                        {step.octave === 1 ? '▲' : step.octave === -1 ? '▼' : '—'}
+                        {step.octave === 1 ? '+' : step.octave === -1 ? '-' : '·'}
                       </span>
                     )}
                   </td>
