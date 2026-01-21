@@ -89,6 +89,10 @@ jobs:
       - name: Prepare SDL file
         env:
           IMAGE_TAG: ${{ github.sha }}
+          GITHUB_USERNAME: ${{ github.repository_owner }}
+          VITE_TREASURY_WALLET: ${{ secrets.VITE_TREASURY_WALLET }}
+          VITE_303_TOKEN_MINT: ${{ secrets.VITE_303_TOKEN_MINT }}
+
         run: |
           # Substitute environment variables in deploy.yaml
           envsubst < deploy.yaml > deploy-final.yaml

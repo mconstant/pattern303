@@ -13,7 +13,7 @@ services:
   web:
     # UPDATE THIS: Replace with your actual image from GitHub Container Registry
     # After GitHub Actions builds, it will be: ghcr.io/YOUR_USERNAME/pattern303:latest
-    image: ghcr.io/mconstant/pattern303:latest
+    image: ghcr.io/${GITHUB_USERNAME}/pattern303:${IMAGE_TAG}
     expose:
       - port: 80
         as: 80
@@ -21,6 +21,9 @@ services:
           - global: true
         accept:
           - "pattern303.akash.network"  # Optional: custom domain
+    env:
+      VITE_TREASURY_WALLET: "${VITE_TREASURY_WALLET}"
+      VITE_303_TOKEN_MINT: "${VITE_303_TOKEN_MINT}"
 
 profiles:
   compute:
