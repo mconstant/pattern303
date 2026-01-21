@@ -67,10 +67,13 @@ export function decodePatternData(encoded: string): Pattern303 {
     const byte1 = parseInt(hexPart.slice(0, 2), 16);
     const byte2 = parseInt(hexPart.slice(2, 3), 16);
 
+    // Convert legacy boolean gate to GateType
+    const gateFlag = ((byte1 >> 1) & 0x01) === 1;
+
     steps.push({
       pitch: (byte1 >> 4) & 0x0F,
       octave: (((byte1 >> 2) & 0x03) - 1) as -1 | 0 | 1,
-      gate: ((byte1 >> 1) & 0x01) === 1,
+      gate: gateFlag ? 'note' as const : 'rest' as const,
       accent: (byte1 & 0x01) === 1,
       slide: (byte2 & 0x01) === 1,
     });

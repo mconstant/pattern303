@@ -1,21 +1,39 @@
 import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { useOwnedPatterns } from '../hooks/usePatternNFTs';
+import { useOwnedPatterns, usePatternsByOwner } from '../hooks/usePatternNFTs';
 import { useNomDeGuerre } from '../hooks/useNomDeGuerre';
 import { PatternGrid } from './PatternCard';
 import { AsciiCamera, AsciiAvatar, AsciiPresetPicker, encodeAsciiArt, decodeAsciiArt } from './AsciiCamera';
 import { PatternNFT } from '../lib/patternNFT';
 import { Pattern303 } from '../types/pattern';
+import { getCreator } from '../lib/creators';
+import { formatWalletAddress } from '../lib/solanaNames';
 
 type AvatarMode = 'none' | 'camera' | 'presets';
 
 interface ProfilePageProps {
   onLoadPattern?: (pattern: Pattern303) => void;
+  viewingAddress?: string | null;
+  onBackToOwnProfile?: () => void;
 }
 
-export function ProfilePage({ onLoadPattern }: ProfilePageProps) {
+export function ProfilePage({ onLoadPattern, viewingAddress, onBackToOwnProfile }: ProfilePageProps) {
   const { publicKey, connected } = useWallet();
-  const { patterns, loading, error, refresh } = useOwnedPatterns('devnet');
+
+  // Determine if viewing own profile or another user's
+  const isViewingOther = !!viewingAddress;
+  const profileAddress = viewingAddress || publicKey?.toBase58() || '';
+  const isOwnProfile = !isViewingOther && connected;
+
+  // Get patterns - use different hook depending on context
+  const ownPatterns = useOwnedPatterns('devnet');
+  const otherPatterns = usePatternsByOwner(viewingAddress || '', 'devnet');
+  const { patterns, loading, error, refresh } = isViewingOther ? otherPatterns : ownPatterns;
+
+  // Get creator info for viewing other profiles
+  const [viewedCreator, setViewedCreator] = useState<{ displayName: string; nomDeGuerre: string | null } | null>(null);
+
+  // Own nom de guerre (only used when viewing own profile)
   const {
     nomDeGuerre,
     loading: ndgLoading,
@@ -36,15 +54,36 @@ export function ProfilePage({ onLoadPattern }: ProfilePageProps) {
   const [ndgInput, setNdgInput] = useState('');
   const [ndgValidation, setNdgValidation] = useState<{ valid: boolean; error?: string } | null>(null);
 
-  // Load avatar from localStorage when wallet connects
+  // Load creator info when viewing another profile
   useEffect(() => {
-    if (publicKey) {
-      const saved = localStorage.getItem(`avatar_${publicKey.toBase58()}`);
+    if (viewingAddress) {
+      const creator = getCreator(viewingAddress);
+      if (creator) {
+        setViewedCreator({
+          displayName: creator.displayName,
+          nomDeGuerre: creator.nomDeGuerre,
+        });
+      } else {
+        setViewedCreator({
+          displayName: formatWalletAddress(viewingAddress),
+          nomDeGuerre: null,
+        });
+      }
+    } else {
+      setViewedCreator(null);
+    }
+  }, [viewingAddress]);
+
+  // Load avatar from localStorage
+  useEffect(() => {
+    const addressToUse = profileAddress;
+    if (addressToUse) {
+      const saved = localStorage.getItem(`avatar_${addressToUse}`);
       setAvatar(saved);
     } else {
       setAvatar(null);
     }
-  }, [publicKey]);
+  }, [profileAddress]);
 
   // Validate username as user types
   useEffect(() => {
@@ -61,6 +100,7 @@ export function ProfilePage({ onLoadPattern }: ProfilePageProps) {
   }, [ndgInput, validateUsername, isUsernameTaken]);
 
   const handleSetAvatar = (ascii: string) => {
+    if (!isOwnProfile) return;
     const encoded = encodeAsciiArt(ascii);
     if (publicKey) {
       localStorage.setItem(`avatar_${publicKey.toBase58()}`, encoded);
@@ -70,6 +110,7 @@ export function ProfilePage({ onLoadPattern }: ProfilePageProps) {
   };
 
   const handleClearAvatar = () => {
+    if (!isOwnProfile) return;
     if (publicKey) {
       localStorage.removeItem(`avatar_${publicKey.toBase58()}`);
     }
@@ -99,7 +140,8 @@ export function ProfilePage({ onLoadPattern }: ProfilePageProps) {
     setNdgInput('');
   };
 
-  if (!connected) {
+  // Show connect prompt only when not viewing another profile and not connected
+  if (!connected && !isViewingOther) {
     return (
       <div className="text-center py-12">
         <h2 className="text-xl font-bold text-synth-silver mb-4">My Profile</h2>
@@ -108,8 +150,23 @@ export function ProfilePage({ onLoadPattern }: ProfilePageProps) {
     );
   }
 
+  // Determine display name for the profile
+  const displayNomDeGuerre = isViewingOther ? viewedCreator?.nomDeGuerre : nomDeGuerre?.username;
+  const displayName = isViewingOther ? viewedCreator?.displayName : (publicKey ? formatWalletAddress(publicKey.toBase58()) : '');
+
   return (
     <div className="space-y-8">
+      {/* Back button when viewing another profile */}
+      {isViewingOther && onBackToOwnProfile && (
+        <button
+          onClick={onBackToOwnProfile}
+          className="flex items-center gap-2 text-synth-accent hover:text-orange-400 transition-colors"
+        >
+          <span>←</span>
+          <span>Back to My Profile</span>
+        </button>
+      )}
+
       {/* Profile Header */}
       <div className="bg-synth-panel rounded-lg p-6">
         <div className="flex items-start gap-6">
@@ -122,78 +179,87 @@ export function ProfilePage({ onLoadPattern }: ProfilePageProps) {
                 No Avatar
               </div>
             )}
-            <div className="flex gap-2 text-xs">
-              {avatarMode === 'none' ? (
-                <>
+            {/* Only show avatar controls for own profile */}
+            {isOwnProfile && (
+              <div className="flex gap-2 text-xs">
+                {avatarMode === 'none' ? (
+                  <>
+                    <button
+                      onClick={() => setAvatarMode('camera')}
+                      className="text-synth-accent hover:text-orange-400"
+                    >
+                      Camera
+                    </button>
+                    <span className="text-gray-600">|</span>
+                    <button
+                      onClick={() => setAvatarMode('presets')}
+                      className="text-synth-accent hover:text-orange-400"
+                    >
+                      Choose Art
+                    </button>
+                    {avatar && (
+                      <>
+                        <span className="text-gray-600">|</span>
+                        <button
+                          onClick={handleClearAvatar}
+                          className="text-gray-500 hover:text-red-400"
+                        >
+                          Clear
+                        </button>
+                      </>
+                    )}
+                  </>
+                ) : (
                   <button
-                    onClick={() => setAvatarMode('camera')}
-                    className="text-synth-accent hover:text-orange-400"
+                    onClick={() => setAvatarMode('none')}
+                    className="text-gray-400 hover:text-white"
                   >
-                    Camera
+                    Cancel
                   </button>
-                  <span className="text-gray-600">|</span>
-                  <button
-                    onClick={() => setAvatarMode('presets')}
-                    className="text-synth-accent hover:text-orange-400"
-                  >
-                    Choose Art
-                  </button>
-                  {avatar && (
-                    <>
-                      <span className="text-gray-600">|</span>
-                      <button
-                        onClick={handleClearAvatar}
-                        className="text-gray-500 hover:text-red-400"
-                      >
-                        Clear
-                      </button>
-                    </>
-                  )}
-                </>
-              ) : (
-                <button
-                  onClick={() => setAvatarMode('none')}
-                  className="text-gray-400 hover:text-white"
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Profile Info */}
           <div className="flex-1">
-            {/* Nom de Guerre */}
+            {/* Nom de Guerre / Display Name */}
             <div className="mb-2">
-              {ndgLoading ? (
+              {isOwnProfile && ndgLoading ? (
                 <div className="h-8 bg-gray-700 rounded animate-pulse w-32" />
-              ) : nomDeGuerre ? (
+              ) : displayNomDeGuerre ? (
                 <div className="flex items-center gap-2">
                   <h2 className="text-2xl font-bold text-synth-accent">
-                    {nomDeGuerre.username}
+                    {displayNomDeGuerre}
                   </h2>
                   <span className="text-xs text-gray-500 bg-gray-700 px-2 py-0.5 rounded">
                     nom de guerre
                   </span>
-                  <button
-                    onClick={() => setShowNdgForm(true)}
-                    className="text-xs text-gray-500 hover:text-synth-accent"
-                  >
-                    change
-                  </button>
+                  {isOwnProfile && (
+                    <button
+                      onClick={() => setShowNdgForm(true)}
+                      className="text-xs text-gray-500 hover:text-synth-accent"
+                    >
+                      change
+                    </button>
+                  )}
                 </div>
-              ) : (
+              ) : isOwnProfile ? (
                 <button
                   onClick={() => setShowNdgForm(true)}
                   className="text-synth-accent hover:text-orange-400 text-sm"
                 >
                   + Claim your nom de guerre
                 </button>
+              ) : (
+                <h2 className="text-2xl font-bold text-synth-accent">
+                  {displayName}
+                </h2>
               )}
             </div>
 
             <p className="text-sm text-gray-400 font-mono break-all">
-              {publicKey?.toBase58()}
+              {profileAddress}
             </p>
 
             <div className="mt-4 flex gap-4 text-sm">
@@ -205,8 +271,8 @@ export function ProfilePage({ onLoadPattern }: ProfilePageProps) {
           </div>
         </div>
 
-        {/* Nom de Guerre Form */}
-        {showNdgForm && (
+        {/* Nom de Guerre Form - only for own profile */}
+        {isOwnProfile && showNdgForm && (
           <div className="mt-6 pt-6 border-t border-gray-700">
             <h3 className="text-sm font-bold text-synth-silver mb-4">
               {hasNomDeGuerre ? 'Change your Nom de Guerre' : 'Claim your Nom de Guerre'}
@@ -273,8 +339,8 @@ export function ProfilePage({ onLoadPattern }: ProfilePageProps) {
           </div>
         )}
 
-        {/* ASCII Camera */}
-        {avatarMode === 'camera' && (
+        {/* ASCII Camera - only for own profile */}
+        {isOwnProfile && avatarMode === 'camera' && (
           <div className="mt-6 pt-6 border-t border-gray-700">
             <h3 className="text-sm font-bold text-synth-silver mb-4">Capture ASCII Avatar</h3>
             <AsciiCamera
@@ -285,8 +351,8 @@ export function ProfilePage({ onLoadPattern }: ProfilePageProps) {
           </div>
         )}
 
-        {/* ASCII Presets */}
-        {avatarMode === 'presets' && (
+        {/* ASCII Presets - only for own profile */}
+        {isOwnProfile && avatarMode === 'presets' && (
           <div className="mt-6 pt-6 border-t border-gray-700">
             <h3 className="text-sm font-bold text-synth-silver mb-4">Choose an Avatar</h3>
             <AsciiPresetPicker onSelect={handleSetAvatar} />
@@ -294,10 +360,12 @@ export function ProfilePage({ onLoadPattern }: ProfilePageProps) {
         )}
       </div>
 
-      {/* My Patterns */}
+      {/* Patterns */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-synth-silver">My Patterns</h3>
+          <h3 className="text-lg font-bold text-synth-silver">
+            {isOwnProfile ? 'My Patterns' : 'Patterns'}
+          </h3>
           <button
             onClick={refresh}
             className="text-sm text-synth-accent hover:text-orange-400"
@@ -311,10 +379,14 @@ export function ProfilePage({ onLoadPattern }: ProfilePageProps) {
           loading={loading}
           error={error}
           onSelect={handleSelectPattern}
-          onBurn={handleBurnPattern}
-          canBurn={true}
+          onBurn={isOwnProfile ? handleBurnPattern : undefined}
+          canBurn={isOwnProfile}
           network="devnet"
-          emptyMessage="You haven't minted any patterns yet. Create a pattern and mint it as an NFT!"
+          emptyMessage={
+            isOwnProfile
+              ? "You haven't minted any patterns yet. Create a pattern and mint it as an NFT!"
+              : "This creator hasn't minted any patterns yet."
+          }
         />
       </div>
     </div>

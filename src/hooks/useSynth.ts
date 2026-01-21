@@ -1,6 +1,14 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { Synth303 } from '../lib/synth303';
-import { Pattern303 } from '../types/pattern';
+import { Pattern303, GateType } from '../types/pattern';
+
+// Helper to check gate type (handles legacy boolean values)
+function getGateType(gate: GateType | boolean): GateType {
+  if (typeof gate === 'boolean') {
+    return gate ? 'note' : 'rest';
+  }
+  return gate;
+}
 
 export function useSynth(pattern: Pattern303) {
   const synthRef = useRef<Synth303 | null>(null);
@@ -36,10 +44,22 @@ export function useSynth(pattern: Pattern303) {
     if (!synthRef.current) return;
 
     const step = pattern.steps[stepIndex];
-    if (step.gate) {
-      synthRef.current.triggerNote(step.pitch, step.octave, step.accent, step.slide);
-    } else {
-      synthRef.current.releaseNote();
+    const gateType = getGateType(step.gate);
+
+    switch (gateType) {
+      case 'note':
+        // Trigger a new note
+        synthRef.current.triggerNote(step.pitch, step.octave, step.accent, step.slide);
+        break;
+      case 'tie':
+        // Don't retrigger, let the note continue (slide to new pitch if different)
+        // We trigger with slide=true to smoothly transition
+        synthRef.current.triggerNote(step.pitch, step.octave, step.accent, true);
+        break;
+      case 'rest':
+        // Release/silence
+        synthRef.current.releaseNote();
+        break;
     }
   }, [pattern.steps]);
 

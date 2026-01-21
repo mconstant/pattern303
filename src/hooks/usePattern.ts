@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Pattern303, Step, DEFAULT_PATTERN, DEFAULT_STEP } from '../types/pattern';
+import { Pattern303, Step, DEFAULT_PATTERN, DEFAULT_STEP, PatternBank, PatternSection, GateType } from '../types/pattern';
 
 const STORAGE_KEY = 'pattern303_draft';
 
@@ -71,6 +71,18 @@ export function usePattern() {
     setPattern(prev => ({ ...prev, accent: Math.max(0, Math.min(100, accent)) }));
   }, []);
 
+  const setBank = useCallback((bank: PatternBank) => {
+    setPattern(prev => ({ ...prev, bank }));
+  }, []);
+
+  const setSection = useCallback((section: PatternSection) => {
+    setPattern(prev => ({ ...prev, section }));
+  }, []);
+
+  const setEfxNotes = useCallback((efxNotes: string) => {
+    setPattern(prev => ({ ...prev, efxNotes }));
+  }, []);
+
   const updateStep = useCallback((stepIndex: number, updates: Partial<Step>) => {
     setPattern(prev => ({
       ...prev,
@@ -83,13 +95,18 @@ export function usePattern() {
   const randomizePattern = useCallback(() => {
     setPattern(prev => ({
       ...prev,
-      steps: prev.steps.map(() => ({
-        pitch: Math.floor(Math.random() * 13),
-        octave: (Math.floor(Math.random() * 3) - 1) as -1 | 0 | 1,
-        accent: Math.random() > 0.7,
-        slide: Math.random() > 0.8,
-        gate: Math.random() > 0.2,
-      })),
+      steps: prev.steps.map(() => {
+        // Weighted random: 60% note, 25% tie, 15% rest
+        const rand = Math.random();
+        const gate: GateType = rand > 0.4 ? 'note' : rand > 0.15 ? 'tie' : 'rest';
+        return {
+          pitch: Math.floor(Math.random() * 13),
+          octave: (Math.floor(Math.random() * 3) - 1) as -1 | 0 | 1,
+          accent: Math.random() > 0.7,
+          slide: Math.random() > 0.8,
+          gate,
+        };
+      }),
     }));
   }, []);
 
@@ -112,6 +129,9 @@ export function usePattern() {
     setEnvMod,
     setDecay,
     setAccent,
+    setBank,
+    setSection,
+    setEfxNotes,
     updateStep,
     randomizePattern,
     clearPattern,

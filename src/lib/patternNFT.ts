@@ -42,10 +42,13 @@ export function decodePatternFromUri(uri: string): Pattern303 | null {
       const byte = parseInt(stepHex.slice(0, 2), 16);
       const slideFlag = stepHex[2] === '1';
 
+      // Convert legacy boolean gate to GateType
+      const gateFlag = ((byte >> 1) & 0x1) === 1;
+
       steps.push({
         pitch: (byte >> 4) & 0xF,
         octave: (((byte >> 2) & 0x3) - 1) as -1 | 0 | 1,
-        gate: ((byte >> 1) & 0x1) === 1,
+        gate: gateFlag ? 'note' as const : 'rest' as const,
         accent: (byte & 0x1) === 1,
         slide: slideFlag,
       });

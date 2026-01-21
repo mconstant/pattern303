@@ -35,6 +35,37 @@ export function useOwnedPatterns(network: NetworkType) {
   return { patterns, loading, error, refresh };
 }
 
+export function usePatternsByOwner(walletAddress: string, network: NetworkType) {
+  const [patterns, setPatterns] = useState<PatternNFT[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    if (!walletAddress) {
+      setPatterns([]);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const owned = await fetchOwnedPatterns(walletAddress, network);
+      setPatterns(owned);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to fetch patterns');
+    } finally {
+      setLoading(false);
+    }
+  }, [walletAddress, network]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  return { patterns, loading, error, refresh };
+}
+
 export function useDiscoverPatterns(network: NetworkType) {
   const [patterns, setPatterns] = useState<PatternNFT[]>([]);
   const [loading, setLoading] = useState(false);

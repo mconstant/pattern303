@@ -1,5 +1,39 @@
-import { Step } from '../types/pattern';
+import { Step, GateType } from '../types/pattern';
 import { NOTE_NAMES } from '../lib/constants';
+
+// Helper to check if gate is active
+function isGateActive(gate: GateType | boolean): boolean {
+  if (typeof gate === 'boolean') return gate;
+  return gate === 'note' || gate === 'tie';
+}
+
+// Helper to get gate type
+function getGateType(gate: GateType | boolean): GateType {
+  if (typeof gate === 'boolean') return gate ? 'note' : 'rest';
+  return gate;
+}
+
+// Cycle through gate types
+function cycleGate(gate: GateType | boolean): GateType {
+  const current = getGateType(gate);
+  switch (current) {
+    case 'note': return 'tie';
+    case 'tie': return 'rest';
+    case 'rest': return 'note';
+    default: return 'note';
+  }
+}
+
+// Get display label for gate
+function getGateLabel(gate: GateType | boolean): string {
+  const current = getGateType(gate);
+  switch (current) {
+    case 'note': return 'NOTE';
+    case 'tie': return 'TIE';
+    case 'rest': return 'REST';
+    default: return 'NOTE';
+  }
+}
 
 interface StepEditorProps {
   step: Step;
@@ -10,12 +44,14 @@ interface StepEditorProps {
 }
 
 export function StepEditor({ step, stepIndex, isCurrentStep, isPlaying, onChange }: StepEditorProps) {
+  const gateActive = isGateActive(step.gate);
+
   return (
     <div
       className={`
         flex flex-col items-center gap-1 p-2 rounded-lg
         ${isCurrentStep && isPlaying ? 'bg-synth-accent/30 ring-2 ring-synth-accent' : 'bg-synth-panel'}
-        ${!step.gate ? 'opacity-50' : ''}
+        ${!gateActive ? 'opacity-50' : ''}
         transition-all duration-75
       `}
     >
@@ -52,15 +88,16 @@ export function StepEditor({ step, stepIndex, isCurrentStep, isPlaying, onChange
 
       {/* Toggle buttons */}
       <div className="flex flex-col gap-1 mt-1">
-        {/* Gate (note on/off) */}
+        {/* Gate (note/tie/rest) */}
         <button
-          onClick={() => onChange({ gate: !step.gate })}
+          onClick={() => onChange({ gate: cycleGate(step.gate) })}
           className={`
             w-10 h-5 text-[9px] rounded font-bold
-            ${step.gate ? 'bg-synth-led text-synth-dark' : 'bg-synth-ledOff text-synth-led/50'}
+            ${gateActive ? 'bg-synth-led text-synth-dark' : 'bg-synth-ledOff text-synth-led/50'}
           `}
+          title="Click to cycle: Note → Tie → Rest"
         >
-          GATE
+          {getGateLabel(step.gate)}
         </button>
 
         {/* Accent */}

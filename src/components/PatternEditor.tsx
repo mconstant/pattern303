@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { usePattern } from '../hooks/usePattern';
 import { useSynth } from '../hooks/useSynth';
-import { useSolanaName } from '../hooks/useSolanaName';
+import { useCreatorNames } from '../hooks/useCreatorNames';
 import { KnobControl } from './KnobControl';
 import { TransportControls } from './TransportControls';
 import { PatternSheet } from './PatternSheet';
@@ -26,22 +26,25 @@ export function PatternEditor({ initialPattern, onPatternChange }: PatternEditor
     setEnvMod,
     setDecay,
     setAccent,
+    setBank,
+    setSection,
+    setEfxNotes,
     updateStep,
     randomizePattern,
     clearPattern,
   } = usePattern();
 
   const { isPlaying, togglePlayback, stop } = useSynth(pattern);
-  const { displayName } = useSolanaName('devnet');
+  const { primaryName } = useCreatorNames('devnet');
   const hasAutoSetCreator = useRef(false);
 
-  // Auto-populate creator with wallet display name (domain or short address)
+  // Auto-populate creator with primary name (nom de guerre > SNS > wallet)
   useEffect(() => {
-    if (displayName && !pattern.creator && !hasAutoSetCreator.current) {
-      setCreator(displayName);
+    if (primaryName && !pattern.creator && !hasAutoSetCreator.current) {
+      setCreator(primaryName);
       hasAutoSetCreator.current = true;
     }
-  }, [displayName, pattern.creator, setCreator]);
+  }, [primaryName, pattern.creator, setCreator]);
 
   // Reset auto-set flag when pattern is cleared or loaded
   useEffect(() => {
@@ -72,13 +75,16 @@ export function PatternEditor({ initialPattern, onPatternChange }: PatternEditor
         pattern={pattern}
         onStepChange={updateStep}
         onNameChange={setName}
-        onCreatorChange={setCreator}
+        onBankChange={setBank}
+        onSectionChange={setSection}
+        onEfxNotesChange={setEfxNotes}
         onCutoffChange={setCutoff}
         onResonanceChange={setResonance}
         onEnvModChange={setEnvMod}
         onDecayChange={setDecay}
         onAccentChange={setAccent}
         editable={true}
+        creatorDisplay={primaryName}
       />
 
       {/* Transport controls */}

@@ -1,9 +1,16 @@
+// Gate types: note (plays), tie (extends previous), rest (silence)
+export type GateType = 'note' | 'tie' | 'rest';
+
+// Pattern bank (I, II, III, IV) and section (A, B)
+export type PatternBank = 'I' | 'II' | 'III' | 'IV';
+export type PatternSection = 'A' | 'B';
+
 export interface Step {
   pitch: number; // 0-12 (C to C, semitones)
   octave: -1 | 0 | 1; // down, normal, up
   accent: boolean;
   slide: boolean;
-  gate: boolean; // note on or rest
+  gate: GateType; // note, tie, or rest
 }
 
 export interface Pattern303 {
@@ -17,6 +24,11 @@ export interface Pattern303 {
   decay: number; // 0-100
   accent: number; // 0-100
   steps: Step[];
+  // Pattern organization
+  bank?: PatternBank;
+  section?: PatternSection;
+  // Freeform notes
+  efxNotes?: string;
 }
 
 export type NetworkType = 'devnet' | 'mainnet-beta';
@@ -28,7 +40,7 @@ export const DEFAULT_STEP: Step = {
   octave: 0,
   accent: false,
   slide: false,
-  gate: true,
+  gate: 'note',
 };
 
 export const DEFAULT_PATTERN: Pattern303 = {
@@ -42,4 +54,7 @@ export const DEFAULT_PATTERN: Pattern303 = {
   decay: 50,
   accent: 50,
   steps: Array(16).fill(null).map(() => ({ ...DEFAULT_STEP })),
+  bank: 'I',
+  section: 'A',
+  efxNotes: '',
 };

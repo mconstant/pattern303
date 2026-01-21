@@ -11,10 +11,20 @@ type Page = 'create' | 'profile' | 'discover';
 function AppContent() {
   const [currentPage, setCurrentPage] = useState<Page>('create');
   const [loadedPattern, setLoadedPattern] = useState<Pattern303 | null>(null);
+  const [viewingProfileAddress, setViewingProfileAddress] = useState<string | null>(null);
 
   const handleLoadPattern = useCallback((pattern: Pattern303) => {
     setLoadedPattern({ ...pattern });
     setCurrentPage('create');
+  }, []);
+
+  const handleViewProfile = useCallback((walletAddress: string) => {
+    setViewingProfileAddress(walletAddress);
+    setCurrentPage('profile');
+  }, []);
+
+  const handleBackToOwnProfile = useCallback(() => {
+    setViewingProfileAddress(null);
   }, []);
 
   const navItems: { id: Page; label: string }[] = [
@@ -36,7 +46,13 @@ function AppContent() {
               {navItems.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => setCurrentPage(item.id)}
+                  onClick={() => {
+                    setCurrentPage(item.id);
+                    // Clear viewing profile when navigating to own profile
+                    if (item.id === 'profile') {
+                      setViewingProfileAddress(null);
+                    }
+                  }}
                   className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
                     currentPage === item.id
                       ? 'bg-synth-accent text-white'
@@ -61,10 +77,17 @@ function AppContent() {
           />
         )}
         {currentPage === 'profile' && (
-          <ProfilePage onLoadPattern={handleLoadPattern} />
+          <ProfilePage
+            onLoadPattern={handleLoadPattern}
+            viewingAddress={viewingProfileAddress}
+            onBackToOwnProfile={handleBackToOwnProfile}
+          />
         )}
         {currentPage === 'discover' && (
-          <DiscoverPage onLoadPattern={handleLoadPattern} />
+          <DiscoverPage
+            onLoadPattern={handleLoadPattern}
+            onViewProfile={handleViewProfile}
+          />
         )}
       </main>
 

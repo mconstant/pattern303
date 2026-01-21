@@ -4,6 +4,7 @@ import { Pattern303, NetworkType } from '../types/pattern';
 import { mintPatternNFT, mintPatternNFTFree, MintResult } from '../lib/metaplex';
 import { trackMintedPattern } from '../lib/patternNFT';
 import { is303Holder } from '../lib/token303';
+import { trackCreator } from '../lib/creators';
 
 export function useMint(pattern: Pattern303, network: NetworkType) {
   const wallet = useWallet();
@@ -38,6 +39,9 @@ export function useMint(pattern: Pattern303, network: NetworkType) {
         pattern.name || 'Pattern 303',
         wallet.publicKey.toBase58()
       );
+
+      // Track the creator in the creator directory
+      trackCreator(wallet.publicKey.toBase58(), network).catch(console.warn);
     } catch (err) {
       console.error('Minting error:', err);
       setError(err instanceof Error ? err.message : 'Failed to mint NFT');

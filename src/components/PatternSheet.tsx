@@ -1,6 +1,8 @@
-import { Pattern303, Step } from '../types/pattern';
+import { Pattern303, Step, GateType, PatternBank, PatternSection } from '../types/pattern';
 
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', 'C'];
+const BANKS: PatternBank[] = ['I', 'II', 'III', 'IV'];
+const SECTIONS: PatternSection[] = ['A', 'B'];
 
 // Engineering drawing style dial component
 function EngineeringDial({
@@ -165,27 +167,61 @@ interface PatternSheetProps {
   pattern: Pattern303;
   onStepChange?: (stepIndex: number, updates: Partial<Step>) => void;
   onNameChange?: (name: string) => void;
-  onCreatorChange?: (creator: string) => void;
+  onBankChange?: (bank: PatternBank) => void;
+  onSectionChange?: (section: PatternSection) => void;
+  onEfxNotesChange?: (notes: string) => void;
   onCutoffChange?: (value: number) => void;
   onResonanceChange?: (value: number) => void;
   onEnvModChange?: (value: number) => void;
   onDecayChange?: (value: number) => void;
   onAccentChange?: (value: number) => void;
   editable?: boolean;
+  creatorDisplay?: string; // The creator name to display (from wallet)
 }
 
 export function PatternSheet({
   pattern,
   onStepChange,
   onNameChange,
-  onCreatorChange,
+  onBankChange,
+  onSectionChange,
+  onEfxNotesChange,
   onCutoffChange,
   onResonanceChange,
   onEnvModChange,
   onDecayChange,
   onAccentChange,
-  editable = false
+  editable = false,
+  creatorDisplay,
 }: PatternSheetProps) {
+  // Cycle through gate types: note -> tie -> rest -> note
+  const cycleGate = (current: GateType | boolean): GateType => {
+    // Handle legacy boolean values
+    if (typeof current === 'boolean') {
+      return current ? 'tie' : 'note';
+    }
+    switch (current) {
+      case 'note': return 'tie';
+      case 'tie': return 'rest';
+      case 'rest': return 'note';
+      default: return 'note';
+    }
+  };
+
+  // Get gate display symbol
+  const getGateSymbol = (gate: GateType | boolean): { symbol: string; active: boolean } => {
+    // Handle legacy boolean values
+    if (typeof gate === 'boolean') {
+      return gate ? { symbol: '●', active: true } : { symbol: '○', active: false };
+    }
+    switch (gate) {
+      case 'note': return { symbol: '●', active: true };
+      case 'tie': return { symbol: '—', active: true };
+      case 'rest': return { symbol: '○', active: false };
+      default: return { symbol: '●', active: true };
+    }
+  };
+
   return (
     <div
       className="mx-auto max-w-4xl"
@@ -225,7 +261,7 @@ export function PatternSheet({
         </div>
       </div>
 
-      {/* Pattern Info */}
+      {/* Pattern Info - Top Section */}
       <div className="relative grid grid-cols-2 gap-4 mb-4 text-sm" style={{ color: '#333' }}>
         <div>
           <span className="font-bold">PATTERN NAME:</span>{' '}
@@ -250,24 +286,9 @@ export function PatternSheet({
         </div>
         <div>
           <span className="font-bold">CREATED BY:</span>{' '}
-          {editable ? (
-            <input
-              type="text"
-              value={pattern.creator}
-              onChange={(e) => onCreatorChange?.(e.target.value)}
-              className="bg-transparent outline-none"
-              style={{
-                borderBottom: '1px solid #666',
-                paddingBottom: '2px',
-                width: '200px',
-                fontFamily: '"Courier New", monospace',
-              }}
-            />
-          ) : (
-            <span style={{ borderBottom: pattern.creator ? '1px solid #666' : 'none', paddingBottom: '2px' }}>
-              {pattern.creator}
-            </span>
-          )}
+          <span style={{ borderBottom: '1px solid #666', paddingBottom: '2px' }}>
+            {creatorDisplay || pattern.creator || (editable ? 'Connect wallet' : '')}
+          </span>
         </div>
         <div>
           <span className="font-bold">TEMPO:</span>{' '}
@@ -280,6 +301,48 @@ export function PatternSheet({
           <span style={{ borderBottom: '1px solid #666', paddingBottom: '2px' }}>
             {pattern.waveform === 'saw' ? 'SAWTOOTH' : 'SQUARE'}
           </span>
+        </div>
+      </div>
+
+      {/* Bank and Section Selection */}
+      <div className="relative flex gap-8 mb-4 text-sm" style={{ color: '#333' }}>
+        <div className="flex items-center gap-2">
+          <span className="font-bold">BANK:</span>
+          <div className="flex gap-1">
+            {BANKS.map((bank) => (
+              <button
+                key={bank}
+                onClick={() => editable && onBankChange?.(bank)}
+                className={`w-8 h-8 border-2 font-bold transition-colors ${
+                  pattern.bank === bank
+                    ? 'bg-black text-white border-black'
+                    : 'bg-white text-black border-gray-400 hover:border-black'
+                } ${editable ? 'cursor-pointer' : 'cursor-default'}`}
+                disabled={!editable}
+              >
+                {bank}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="font-bold">SECTION:</span>
+          <div className="flex gap-1">
+            {SECTIONS.map((section) => (
+              <button
+                key={section}
+                onClick={() => editable && onSectionChange?.(section)}
+                className={`w-8 h-8 border-2 font-bold transition-colors ${
+                  pattern.section === section
+                    ? 'bg-black text-white border-black'
+                    : 'bg-white text-black border-gray-400 hover:border-black'
+                } ${editable ? 'cursor-pointer' : 'cursor-default'}`}
+                disabled={!editable}
+              >
+                {section}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -321,34 +384,37 @@ export function PatternSheet({
               <td className="py-2 px-2 font-bold" style={{ borderBottom: '1px solid #999' }}>
                 NOTE
               </td>
-              {pattern.steps.map((step, i) => (
-                <td
-                  key={i}
-                  className="text-center py-2 px-1"
-                  style={{
-                    borderBottom: '1px solid #999',
-                    borderLeft: i % 4 === 0 ? '2px solid #333' : '1px solid #ccc',
-                    backgroundColor: step.gate ? 'rgba(0,0,0,0.05)' : 'transparent',
-                  }}
-                >
-                  {editable ? (
-                    <select
-                      value={step.pitch}
-                      onChange={(e) => onStepChange?.(i, { pitch: parseInt(e.target.value) })}
-                      className="bg-transparent text-center w-full cursor-pointer outline-none font-bold"
-                      style={{ color: step.gate ? '#000' : '#999' }}
-                    >
-                      {NOTE_NAMES.map((note, idx) => (
-                        <option key={idx} value={idx}>{note}</option>
-                      ))}
-                    </select>
-                  ) : (
-                    <span className={step.gate ? 'font-bold' : 'text-gray-400'}>
-                      {NOTE_NAMES[step.pitch]}
-                    </span>
-                  )}
-                </td>
-              ))}
+              {pattern.steps.map((step, i) => {
+                const gateInfo = getGateSymbol(step.gate);
+                return (
+                  <td
+                    key={i}
+                    className="text-center py-2 px-1"
+                    style={{
+                      borderBottom: '1px solid #999',
+                      borderLeft: i % 4 === 0 ? '2px solid #333' : '1px solid #ccc',
+                      backgroundColor: gateInfo.active ? 'rgba(0,0,0,0.05)' : 'transparent',
+                    }}
+                  >
+                    {editable ? (
+                      <select
+                        value={step.pitch}
+                        onChange={(e) => onStepChange?.(i, { pitch: parseInt(e.target.value) })}
+                        className="bg-transparent text-center w-full cursor-pointer outline-none font-bold"
+                        style={{ color: gateInfo.active ? '#000' : '#999' }}
+                      >
+                        {NOTE_NAMES.map((note, idx) => (
+                          <option key={idx} value={idx}>{note}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className={gateInfo.active ? 'font-bold' : 'text-gray-400'}>
+                        {NOTE_NAMES[step.pitch]}
+                      </span>
+                    )}
+                  </td>
+                );
+              })}
             </tr>
 
             {/* Octave Row */}
@@ -359,7 +425,7 @@ export function PatternSheet({
               {pattern.steps.map((step, i) => (
                 <td
                   key={i}
-                  className="text-center py-2 px-1 cursor-pointer hover:bg-black/10"
+                  className={`text-center py-2 px-1 ${editable ? 'cursor-pointer hover:bg-black/10' : ''}`}
                   style={{
                     borderBottom: '1px solid #999',
                     borderLeft: i % 4 === 0 ? '2px solid #333' : '1px solid #ccc',
@@ -378,28 +444,30 @@ export function PatternSheet({
               ))}
             </tr>
 
-            {/* Gate Row */}
+            {/* Gate Row - Note/Tie/Rest */}
             <tr>
               <td className="py-2 px-2 font-bold" style={{ borderBottom: '1px solid #999' }}>
                 GATE
               </td>
-              {pattern.steps.map((step, i) => (
-                <td
-                  key={i}
-                  className="text-center py-2 px-1 cursor-pointer hover:bg-black/10"
-                  style={{
-                    borderBottom: '1px solid #999',
-                    borderLeft: i % 4 === 0 ? '2px solid #333' : '1px solid #ccc',
-                  }}
-                  onClick={() => editable && onStepChange?.(i, { gate: !step.gate })}
-                >
-                  {step.gate ? (
-                    <span className="font-bold">●</span>
-                  ) : (
-                    <span className="text-gray-400">○</span>
-                  )}
-                </td>
-              ))}
+              {pattern.steps.map((step, i) => {
+                const gateInfo = getGateSymbol(step.gate);
+                return (
+                  <td
+                    key={i}
+                    className={`text-center py-2 px-1 ${editable ? 'cursor-pointer hover:bg-black/10' : ''}`}
+                    style={{
+                      borderBottom: '1px solid #999',
+                      borderLeft: i % 4 === 0 ? '2px solid #333' : '1px solid #ccc',
+                    }}
+                    onClick={() => editable && onStepChange?.(i, { gate: cycleGate(step.gate) })}
+                    title={editable ? 'Click to cycle: Note (●) → Tie (—) → Rest (○)' : undefined}
+                  >
+                    <span className={gateInfo.active ? 'font-bold' : 'text-gray-400'}>
+                      {gateInfo.symbol}
+                    </span>
+                  </td>
+                );
+              })}
             </tr>
 
             {/* Accent Row */}
@@ -410,7 +478,7 @@ export function PatternSheet({
               {pattern.steps.map((step, i) => (
                 <td
                   key={i}
-                  className="text-center py-2 px-1 cursor-pointer hover:bg-black/10"
+                  className={`text-center py-2 px-1 ${editable ? 'cursor-pointer hover:bg-black/10' : ''}`}
                   style={{
                     borderBottom: '1px solid #999',
                     borderLeft: i % 4 === 0 ? '2px solid #333' : '1px solid #ccc',
@@ -434,7 +502,7 @@ export function PatternSheet({
               {pattern.steps.map((step, i) => (
                 <td
                   key={i}
-                  className="text-center py-2 px-1 cursor-pointer hover:bg-black/10"
+                  className={`text-center py-2 px-1 ${editable ? 'cursor-pointer hover:bg-black/10' : ''}`}
                   style={{
                     borderBottom: '2px solid #333',
                     borderLeft: i % 4 === 0 ? '2px solid #333' : '1px solid #ccc',
@@ -453,17 +521,49 @@ export function PatternSheet({
         </table>
       </div>
 
+      {/* EFX / Notes Section */}
+      <div className="relative mb-4">
+        <div className="font-bold text-sm mb-2" style={{ color: '#333' }}>
+          EFX / NOTES:
+        </div>
+        {editable ? (
+          <textarea
+            value={pattern.efxNotes || ''}
+            onChange={(e) => onEfxNotesChange?.(e.target.value)}
+            placeholder="Add effects notes, performance tips, or other comments..."
+            className="w-full bg-white/50 border border-gray-400 rounded p-2 text-sm outline-none focus:border-gray-600 resize-none"
+            style={{
+              fontFamily: '"Courier New", monospace',
+              minHeight: '60px',
+              color: '#333',
+            }}
+            rows={3}
+          />
+        ) : pattern.efxNotes ? (
+          <div
+            className="w-full bg-white/30 border border-gray-300 rounded p-2 text-sm whitespace-pre-wrap"
+            style={{
+              fontFamily: '"Courier New", monospace',
+              minHeight: '40px',
+              color: '#333',
+            }}
+          >
+            {pattern.efxNotes}
+          </div>
+        ) : null}
+      </div>
+
       {/* Synth Parameters - Engineering Drawing Style Dials */}
       <div
         className="relative pt-4"
         style={{ borderTop: '1px solid #999' }}
       >
         <div className="flex justify-around items-end">
-          <EngineeringDial label="CUTOFF" value={pattern.cutoff} onChange={onCutoffChange} />
-          <EngineeringDial label="RESONANCE" value={pattern.resonance} onChange={onResonanceChange} />
-          <EngineeringDial label="ENV MOD" value={pattern.envMod} onChange={onEnvModChange} />
-          <EngineeringDial label="DECAY" value={pattern.decay} onChange={onDecayChange} />
-          <EngineeringDial label="ACCENT" value={pattern.accent} onChange={onAccentChange} />
+          <EngineeringDial label="CUTOFF" value={pattern.cutoff} onChange={editable ? onCutoffChange : undefined} />
+          <EngineeringDial label="RESONANCE" value={pattern.resonance} onChange={editable ? onResonanceChange : undefined} />
+          <EngineeringDial label="ENV MOD" value={pattern.envMod} onChange={editable ? onEnvModChange : undefined} />
+          <EngineeringDial label="DECAY" value={pattern.decay} onChange={editable ? onDecayChange : undefined} />
+          <EngineeringDial label="ACCENT" value={pattern.accent} onChange={editable ? onAccentChange : undefined} />
         </div>
       </div>
 
@@ -482,7 +582,7 @@ export function PatternSheet({
           className="relative mt-4 text-xs text-center"
           style={{ color: '#888' }}
         >
-          Click cells to edit • ● = Gate On • ▲▼ = Octave Up/Down • ▶ = Accent • ⌒ = Slide
+          Click cells to edit • Gate: ● = Note, — = Tie, ○ = Rest • ▲▼ = Octave Up/Down • ▶ = Accent • ⌒ = Slide
         </div>
       )}
     </div>
