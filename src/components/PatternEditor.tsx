@@ -2,10 +2,7 @@ import { useEffect, useRef } from 'react';
 import { usePattern } from '../hooks/usePattern';
 import { useSynth } from '../hooks/useSynth';
 import { useCreatorNames } from '../hooks/useCreatorNames';
-import { KnobControl } from './KnobControl';
-import { TransportControls } from './TransportControls';
 import { PatternSheet } from './PatternSheet';
-import { MintButton } from './MintButton';
 import { Pattern303 } from '../types/pattern';
 
 interface PatternEditorProps {
@@ -18,7 +15,6 @@ export function PatternEditor({ initialPattern, onPatternChange }: PatternEditor
     pattern,
     setPattern,
     setName,
-    setCreator,
     setTempo,
     setWaveform,
     setCutoff,
@@ -38,26 +34,11 @@ export function PatternEditor({ initialPattern, onPatternChange }: PatternEditor
   const { primaryName } = useCreatorNames('devnet');
   const hasAutoSetCreator = useRef(false);
 
-  // Auto-populate creator with primary name (nom de guerre > SNS > wallet)
-  useEffect(() => {
-    if (primaryName && !pattern.creator && !hasAutoSetCreator.current) {
-      setCreator(primaryName);
-      hasAutoSetCreator.current = true;
-    }
-  }, [primaryName, pattern.creator, setCreator]);
-
-  // Reset auto-set flag when pattern is cleared or loaded
-  useEffect(() => {
-    if (!pattern.creator) {
-      hasAutoSetCreator.current = false;
-    }
-  }, [pattern.creator]);
-
   // Load initial pattern if provided
   useEffect(() => {
     if (initialPattern) {
       setPattern(initialPattern);
-      hasAutoSetCreator.current = true; // Don't override loaded pattern's creator
+      hasAutoSetCreator.current = true;
     }
   }, [initialPattern, setPattern]);
 
@@ -69,79 +50,28 @@ export function PatternEditor({ initialPattern, onPatternChange }: PatternEditor
   }, [pattern, onPatternChange]);
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Pattern Sheet */}
-      <PatternSheet
-        pattern={pattern}
-        onStepChange={updateStep}
-        onNameChange={setName}
-        onBankChange={setBank}
-        onSectionChange={setSection}
-        onEfxNotesChange={setEfxNotes}
-        onCutoffChange={setCutoff}
-        onResonanceChange={setResonance}
-        onEnvModChange={setEnvMod}
-        onDecayChange={setDecay}
-        onAccentChange={setAccent}
-        editable={true}
-        creatorDisplay={primaryName}
-      />
-
-      {/* Transport controls */}
-      <TransportControls
-        isPlaying={isPlaying}
-        tempo={pattern.tempo}
-        onTogglePlay={togglePlayback}
-        onStop={stop}
-        onTempoChange={setTempo}
-        onRandomize={randomizePattern}
-        onClear={clearPattern}
-      />
-
-      {/* Synth parameters */}
-      <div className="flex items-center gap-6 p-4 bg-synth-panel rounded-lg flex-wrap">
-        {/* Waveform selector */}
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-xs text-synth-silver uppercase tracking-wider">Waveform</span>
-          <div className="flex gap-1">
-            <button
-              onClick={() => setWaveform('saw')}
-              className={`px-3 py-1 text-sm rounded ${
-                pattern.waveform === 'saw'
-                  ? 'bg-synth-accent text-white'
-                  : 'bg-synth-dark text-gray-400 hover:bg-gray-600'
-              }`}
-            >
-              SAW
-            </button>
-            <button
-              onClick={() => setWaveform('square')}
-              className={`px-3 py-1 text-sm rounded ${
-                pattern.waveform === 'square'
-                  ? 'bg-synth-accent text-white'
-                  : 'bg-synth-dark text-gray-400 hover:bg-gray-600'
-              }`}
-            >
-              SQR
-            </button>
-          </div>
-        </div>
-
-        <div className="h-12 w-px bg-gray-600" />
-
-        {/* Parameter knobs */}
-        <KnobControl label="Cutoff" value={pattern.cutoff} onChange={setCutoff} />
-        <KnobControl label="Reso" value={pattern.resonance} onChange={setResonance} />
-        <KnobControl label="Env Mod" value={pattern.envMod} onChange={setEnvMod} />
-        <KnobControl label="Decay" value={pattern.decay} onChange={setDecay} />
-        <KnobControl label="Accent" value={pattern.accent} onChange={setAccent} />
-      </div>
-
-      {/* Mint NFT Section */}
-      <div className="p-4 bg-synth-panel rounded-lg">
-        <h2 className="text-lg font-bold text-synth-silver mb-4">Mint as NFT</h2>
-        <MintButton pattern={pattern} network="devnet" />
-      </div>
-    </div>
+    <PatternSheet
+      pattern={pattern}
+      onStepChange={updateStep}
+      onNameChange={setName}
+      onBankChange={setBank}
+      onSectionChange={setSection}
+      onEfxNotesChange={setEfxNotes}
+      onTempoChange={setTempo}
+      onWaveformChange={setWaveform}
+      onCutoffChange={setCutoff}
+      onResonanceChange={setResonance}
+      onEnvModChange={setEnvMod}
+      onDecayChange={setDecay}
+      onAccentChange={setAccent}
+      onRandomize={randomizePattern}
+      onClear={clearPattern}
+      editable={true}
+      creatorDisplay={primaryName}
+      isPlaying={isPlaying}
+      onTogglePlay={togglePlayback}
+      onStop={stop}
+      network="devnet"
+    />
   );
 }

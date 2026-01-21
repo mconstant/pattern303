@@ -35,25 +35,28 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-synth-dark flex flex-col">
-      {/* Header */}
+      {/* Compact Header */}
       <header className="border-b border-gray-700 bg-synth-panel">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <h1 className="text-2xl font-bold text-synth-accent">Pattern 303</h1>
-
-            {/* Navigation */}
-            <nav className="flex gap-1">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <h1
+              className="text-lg sm:text-xl font-black tracking-tight cursor-pointer"
+              style={{ color: '#ff6600', fontFamily: 'Arial Black, sans-serif' }}
+              onClick={() => setCurrentPage('create')}
+            >
+              p303
+            </h1>
+            <nav className="flex gap-0.5 sm:gap-1">
               {navItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => {
                     setCurrentPage(item.id);
-                    // Clear viewing profile when navigating to own profile
                     if (item.id === 'profile') {
                       setViewingProfileAddress(null);
                     }
                   }}
-                  className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                  className={`px-2 sm:px-3 py-1.5 rounded text-xs sm:text-sm font-medium transition-colors ${
                     currentPage === item.id
                       ? 'bg-synth-accent text-white'
                       : 'text-gray-400 hover:text-white hover:bg-gray-700'
@@ -68,8 +71,8 @@ function AppContent() {
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 py-8 flex-grow w-full">
+      {/* Main content - tighter padding on mobile */}
+      <main className="max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-4 flex-grow w-full">
         {currentPage === 'create' && (
           <PatternEditor
             initialPattern={loadedPattern}
@@ -90,14 +93,6 @@ function AppContent() {
           />
         )}
       </main>
-
-      {/* Footer */}
-      <footer className="border-t border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 py-4 text-center text-sm text-gray-500">
-          <p>Pattern 303 - Create and mint TB-303 patterns as NFTs on Solana</p>
-          <p className="mt-1">Patterns stored fully on-chain • Built on Devnet</p>
-        </div>
-      </footer>
     </div>
   );
 }
