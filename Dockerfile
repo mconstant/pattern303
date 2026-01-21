@@ -1,9 +1,6 @@
 # Build stage
 FROM node:20-alpine AS builder
 
-ENV VITE_TREASURY_WALLET=$VITE_TREASURY_WALLET
-ENV VITE_303_TOKEN_MINT=$VITE_303_TOKEN_MINT
-
 # Install build dependencies for native modules (usb, node-hid)
 RUN apk add --no-cache python3 make g++ linux-headers eudev-dev
 
@@ -23,6 +20,9 @@ RUN npm run build
 
 # Production stage
 FROM nginx:alpine
+
+ENV VITE_TREASURY_WALLET=$VITE_TREASURY_WALLET
+ENV VITE_303_TOKEN_MINT=$VITE_303_TOKEN_MINT
 
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
