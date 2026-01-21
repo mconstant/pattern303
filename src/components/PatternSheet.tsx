@@ -10,6 +10,7 @@ const SECTIONS: PatternSection[] = ['A', 'B'];
 const PATTERN_NUMBERS: PatternNumber[] = [1, 2, 3, 4, 5, 6, 7, 8];
 
 // Compact engineering dial for synth parameters
+// Standard pot rotation: 7 o'clock (min) to 5 o'clock (max), ~300° sweep
 function MiniDial({
   label,
   value,
@@ -22,11 +23,32 @@ function MiniDial({
   const size = 48;
   const center = size / 2;
   const radius = 18;
-  const angle = -135 + (value / 100) * 270;
+  const tickRadius = radius + 4;
+
+  // Standard pot: 7 o'clock (120°) to 5 o'clock (60°/420°), 300° sweep clockwise
+  const startAngle = 120;
+  const sweepAngle = 300;
+  const angle = startAngle + (value / 100) * sweepAngle;
   const angleRad = (angle * Math.PI) / 180;
   const pointerLength = radius - 4;
   const pointerX = center + Math.cos(angleRad) * pointerLength;
   const pointerY = center + Math.sin(angleRad) * pointerLength;
+
+  // Generate tick marks (11 ticks for 0, 10, 20, ... 100)
+  const ticks = [];
+  for (let i = 0; i <= 10; i++) {
+    const tickAngle = startAngle + (i / 10) * sweepAngle;
+    const tickRad = (tickAngle * Math.PI) / 180;
+    const innerR = radius + 1;
+    const outerR = i % 5 === 0 ? tickRadius : tickRadius - 2; // Longer ticks at 0, 50, 100
+    ticks.push({
+      x1: center + Math.cos(tickRad) * innerR,
+      y1: center + Math.sin(tickRad) * innerR,
+      x2: center + Math.cos(tickRad) * outerR,
+      y2: center + Math.sin(tickRad) * outerR,
+      major: i % 5 === 0,
+    });
+  }
 
   const handleMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
     if (!onChange) return;
@@ -80,9 +102,25 @@ function MiniDial({
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
       >
+        {/* Tick marks */}
+        {ticks.map((tick, i) => (
+          <line
+            key={i}
+            x1={tick.x1}
+            y1={tick.y1}
+            x2={tick.x2}
+            y2={tick.y2}
+            stroke="#666"
+            strokeWidth={tick.major ? 1.5 : 0.75}
+          />
+        ))}
+        {/* Knob body */}
         <circle cx={center} cy={center} r={radius} fill="white" stroke="#1a1a1a" strokeWidth="1.5" />
-        <circle cx={center} cy={center} r={radius - 6} fill="none" stroke="#1a1a1a" strokeWidth="0.5" strokeDasharray="1,1" />
+        {/* Inner ring */}
+        <circle cx={center} cy={center} r={radius - 6} fill="none" stroke="#ccc" strokeWidth="0.5" />
+        {/* Pointer */}
         <line x1={center} y1={center} x2={pointerX} y2={pointerY} stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round" />
+        {/* Center cap */}
         <circle cx={center} cy={center} r={2.5} fill="#1a1a1a" />
       </svg>
       <div style={{ fontSize: '7px', color: '#333', fontWeight: 'bold', marginTop: '2px' }}>{label}</div>
