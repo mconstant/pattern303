@@ -52,6 +52,9 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VITE_TREASURY_WALLET=${{ secrets.VITE_TREASURY_WALLET }}
+            VITE_303_TOKEN_MINT=${{ secrets.VITE_303_TOKEN_MINT }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
