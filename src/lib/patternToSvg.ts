@@ -183,7 +183,6 @@ export function patternToSvg(pattern: Pattern303): string {
   <!-- Footer -->
   <g font-family="'Courier New', monospace" font-size="8" fill="#666">
     <line x1="${padding}" y1="${height - 35}" x2="${width - padding}" y2="${height - 35}" stroke="#999" stroke-width="0.5"/>
-    <text x="${padding}" y="${height - 20}">© ROLAND CORPORATION</text>
     <text x="${width - padding}" y="${height - 20}" text-anchor="end">PATTERN 303 NFT</text>
   </g>
 

@@ -572,7 +572,6 @@ export function PatternSheet({
         className="relative mt-6 pt-4 flex justify-between text-xs"
         style={{ borderTop: '1px solid #999', color: '#666' }}
       >
-        <div>© ROLAND CORPORATION</div>
         <div>PATTERN 303</div>
       </div>
 

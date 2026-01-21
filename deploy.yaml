@@ -1,0 +1,53 @@
+---
+# Akash SDL (Stack Definition Language) for Pattern 303
+# Documentation: https://akash.network/docs/deployments/akash-sdl
+#
+# To deploy:
+# 1. Build and push Docker image: docker build -t ghcr.io/YOUR_USERNAME/pattern303:latest .
+# 2. Update the image below with your registry path
+# 3. Deploy via Akash Console (https://console.akash.network) or CLI
+
+version: "2.0"
+
+services:
+  web:
+    # UPDATE THIS: Replace with your actual image from GitHub Container Registry
+    # After GitHub Actions builds, it will be: ghcr.io/YOUR_USERNAME/pattern303:latest
+    image: ghcr.io/OWNER/pattern303:latest
+    expose:
+      - port: 80
+        as: 80
+        to:
+          - global: true
+        accept:
+          - "pattern303.akash.network"  # Optional: custom domain
+
+profiles:
+  compute:
+    web:
+      resources:
+        cpu:
+          units: 0.5
+        memory:
+          size: 512Mi
+        storage:
+          size: 1Gi
+
+  placement:
+    dcloud:
+      attributes:
+        region: us-west
+      signedBy:
+        anyOf:
+          - akash1365yvmc4s7awdyj3n2sav7xfx76adc6dnmlx63
+          - akash18qa2a2ltfyvkyj0ggj3hkvuj6twzyumuaru9s4
+      pricing:
+        web:
+          denom: uakt
+          amount: 10000
+
+deployment:
+  web:
+    dcloud:
+      profile: web
+      count: 1

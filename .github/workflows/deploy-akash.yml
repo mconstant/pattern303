@@ -1,0 +1,182 @@
+name: Deploy to Akash Network
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Deployment action'
+        required: true
+        default: 'deploy'
+        type: choice
+        options:
+          - deploy
+          - update
+          - close
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tags }}
+      image_digest: ${{ steps.build.outputs.digest }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-akash:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Akash CLI
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/akash-network/node/master/install.sh | sh -s -- -b /usr/local/bin
+          akash version
+
+      - name: Setup Akash wallet
+        env:
+          AKASH_KEYRING_BACKEND: file
+          AKASH_KEY_PASSWORD: ${{ secrets.AKASH_KEY_PASSWORD }}
+        run: |
+          mkdir -p ~/.akash
+          echo "${{ secrets.AKASH_WALLET_KEY }}" | base64 -d > ~/.akash/keyring-file
+
+      - name: Prepare SDL file
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # Substitute environment variables in deploy.yaml
+          envsubst < deploy.yaml > deploy-final.yaml
+          cat deploy-final.yaml
+
+      - name: Create certificate (if needed)
+        env:
+          AKASH_NODE: ${{ secrets.AKASH_NODE }}
+          AKASH_CHAIN_ID: ${{ secrets.AKASH_CHAIN_ID }}
+          AKASH_KEYRING_BACKEND: file
+          AKASH_FROM: ${{ secrets.AKASH_ACCOUNT_ADDRESS }}
+          AKASH_KEY_PASSWORD: ${{ secrets.AKASH_KEY_PASSWORD }}
+        run: |
+          # Check if certificate exists, create if not
+          if ! akash query cert list --owner $AKASH_FROM --state valid -o json | jq -e '.certificates | length > 0' > /dev/null 2>&1; then
+            echo "Creating new certificate..."
+            akash tx cert create client --from $AKASH_FROM --yes
+          else
+            echo "Valid certificate exists"
+          fi
+
+      - name: Deploy to Akash
+        if: github.event.inputs.action != 'close'
+        env:
+          AKASH_NODE: ${{ secrets.AKASH_NODE }}
+          AKASH_CHAIN_ID: ${{ secrets.AKASH_CHAIN_ID }}
+          AKASH_KEYRING_BACKEND: file
+          AKASH_FROM: ${{ secrets.AKASH_ACCOUNT_ADDRESS }}
+          AKASH_KEY_PASSWORD: ${{ secrets.AKASH_KEY_PASSWORD }}
+          AKASH_GAS: auto
+          AKASH_GAS_ADJUSTMENT: 1.5
+          AKASH_GAS_PRICES: 0.025uakt
+          AKASH_BROADCAST_MODE: sync
+        run: |
+          # Check if we have an existing deployment
+          DSEQ="${{ secrets.AKASH_DEPLOYMENT_DSEQ }}"
+
+          if [ -n "$DSEQ" ] && [ "${{ github.event.inputs.action }}" = "update" ]; then
+            echo "Updating existing deployment $DSEQ..."
+            akash tx deployment update deploy-final.yaml \
+              --dseq $DSEQ \
+              --from $AKASH_FROM \
+              --yes
+          else
+            echo "Creating new deployment..."
+            # Create deployment and capture the DSEQ
+            RESULT=$(akash tx deployment create deploy-final.yaml \
+              --from $AKASH_FROM \
+              --yes \
+              -o json)
+
+            echo "Deployment created. Check Akash Console for bid selection."
+            echo "Result: $RESULT"
+
+            # Extract DSEQ from result
+            NEW_DSEQ=$(echo $RESULT | jq -r '.logs[0].events[] | select(.type=="akash.v1beta3.EventDeploymentCreated") | .attributes[] | select(.key=="dseq") | .value')
+            echo "New DSEQ: $NEW_DSEQ"
+            echo "::notice::New deployment DSEQ: $NEW_DSEQ - Update your AKASH_DEPLOYMENT_DSEQ secret with this value"
+          fi
+
+      - name: Close deployment
+        if: github.event.inputs.action == 'close'
+        env:
+          AKASH_NODE: ${{ secrets.AKASH_NODE }}
+          AKASH_CHAIN_ID: ${{ secrets.AKASH_CHAIN_ID }}
+          AKASH_KEYRING_BACKEND: file
+          AKASH_FROM: ${{ secrets.AKASH_ACCOUNT_ADDRESS }}
+          AKASH_KEY_PASSWORD: ${{ secrets.AKASH_KEY_PASSWORD }}
+          AKASH_GAS: auto
+          AKASH_GAS_ADJUSTMENT: 1.5
+          AKASH_GAS_PRICES: 0.025uakt
+        run: |
+          DSEQ="${{ secrets.AKASH_DEPLOYMENT_DSEQ }}"
+          if [ -n "$DSEQ" ]; then
+            echo "Closing deployment $DSEQ..."
+            akash tx deployment close --dseq $DSEQ --from $AKASH_FROM --yes
+          else
+            echo "No DSEQ provided, nothing to close"
+          fi
+
+      - name: Deployment summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image:** \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Action:** ${{ github.event.inputs.action || 'deploy' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Go to [Akash Console](https://console.akash.network) to view and manage your deployment" >> $GITHUB_STEP_SUMMARY
+          echo "2. Select a bid from providers" >> $GITHUB_STEP_SUMMARY
+          echo "3. Once deployed, you'll get a URL to access your application" >> $GITHUB_STEP_SUMMARY

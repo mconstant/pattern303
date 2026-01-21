@@ -1,0 +1,44 @@
+# Dependencies
+node_modules
+
+# Build output (we build in container)
+dist
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Environment files (don't include in image)
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test files
+coverage
+*.test.*
+*.spec.*
+
+# Documentation
+*.md
+!README.md
+
+# CI/CD
+.github
+
+# Akash
+deploy.yaml
+deploy-final.yaml
+
+# Docker
+Dockerfile
+.dockerignore
