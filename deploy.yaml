@@ -3,16 +3,23 @@
 # Documentation: https://akash.network/docs/deployments/akash-sdl
 #
 # To deploy:
-# 1. Build and push Docker image: docker build -t ghcr.io/YOUR_USERNAME/pattern303:latest .
-# 2. Update the image below with your registry path
-# 3. Deploy via Akash Console (https://console.akash.network) or CLI
+# 1. Build and push Docker image with build args:
+#    docker buildx build \
+#      --build-arg VITE_TREASURY_WALLET=YOUR_WALLET \
+#      --build-arg VITE_303_TOKEN_MINT=YOUR_TOKEN_MINT \
+#      -t ghcr.io/YOUR_USERNAME/pattern303:latest \
+#      --push \
+#      .
+# 2. Deploy via Akash Console (https://console.akash.network) or CLI
+#
+# NOTE: VITE_TREASURY_WALLET and VITE_303_TOKEN_MINT are baked into the build,
+# not passed at runtime, because Vite embeds them during the build process.
 
 version: "2.0"
 
 services:
   web:
-    # UPDATE THIS: Replace with your actual image from GitHub Container Registry
-    # After GitHub Actions builds, it will be: ghcr.io/YOUR_USERNAME/pattern303:latest
+    # Image must be built with VITE_TREASURY_WALLET and VITE_303_TOKEN_MINT args
     image: ghcr.io/${GITHUB_USERNAME}/pattern303:${IMAGE_TAG}
     expose:
       - port: 80
@@ -21,9 +28,6 @@ services:
           - global: true
         accept:
           - "pattern303.akash.network"  # Optional: custom domain
-    env:
-      - VITE_TREASURY_WALLET=${VITE_TREASURY_WALLET}
-      - VITE_303_TOKEN_MINT=${VITE_303_TOKEN_MINT}
 
 profiles:
   compute:
