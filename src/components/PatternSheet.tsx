@@ -373,11 +373,14 @@ export function PatternSheet({
           <span className="font-bold">BPM:</span>
           {editable ? (
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={pattern.tempo}
-              onChange={(e) => onTempoChange?.(parseInt(e.target.value) || 120)}
-              min={60}
-              max={300}
+              onChange={(e) => {
+                const val = parseInt(e.target.value) || 120;
+                onTempoChange?.(Math.max(60, Math.min(300, val)));
+              }}
               className="w-12 bg-white/50 text-center font-bold outline-none border border-gray-400 rounded"
               style={{ fontFamily: 'monospace' }}
             />

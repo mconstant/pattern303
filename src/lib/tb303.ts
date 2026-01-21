@@ -303,7 +303,7 @@ export class TB303Synth {
 
       // Cutoff modulation
       const tmp1 = this.envscaler * (this.filterenv - this.envoffset);
-      const tmp2 = this.accentgain * this.filterenv;
+      const tmp2 = this.accentgain * this.filterenv * 2.0; // Accent boosts filter more
       const effectiveCutoff = Math.min(this._cutoff * Math.pow(2.0, tmp1 + tmp2), 20000);
 
       // Recalculate main filter coefficients
@@ -358,8 +358,8 @@ export class TB303Synth {
     bq[2] = biquady;
     sample = biquady;
 
-    // Output gain with declicker
-    let outputGain = (this.accentgain * 4.0 + 1.0) * this.ampenv;
+    // Output gain with declicker - accent boosts volume significantly
+    let outputGain = (this.accentgain * 6.0 + 1.0) * this.ampenv;
     const dc = this.biquad[0];
     biquady = dc[4] * outputGain + dc[5] * dc[0] + dc[6] * dc[1] + dc[7] * dc[2] + dc[8] * dc[3] + antiDenormal;
     dc[1] = dc[0];

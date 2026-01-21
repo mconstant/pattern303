@@ -14,9 +14,9 @@ function patternToTB303Steps(pattern: Pattern303): TB303Step[] {
     const isGateOn = gateType === 'note' || gateType === 'tie';
     const isSlide = step.slide || gateType === 'tie';
 
-    // Convert pitch (0-12) and octave (-1, 0, 1) to MIDI note
-    // C2 = 36 (base), so pitch 0 at octave 0 = C3 = 48
-    const midiNote = 48 + step.pitch + (step.octave * 12);
+    // Convert pitch (0-12) to MIDI note
+    // Base is C1 (24) - octave adjustment is handled by down/up flags in tb303.ts
+    const midiNote = 24 + step.pitch;
 
     return {
       pitch: midiNote,
