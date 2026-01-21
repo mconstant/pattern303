@@ -4,6 +4,8 @@ import {
   burnV1,
   mplTokenMetadata,
   TokenStandard,
+  verifyCollectionV1,
+  findMetadataPda,
 } from '@metaplex-foundation/mpl-token-metadata';
 import {
   generateSigner,
@@ -21,7 +23,7 @@ import {
   LAMPORTS_PER_SOL,
 } from '@solana/web3.js';
 import { Pattern303, NetworkType } from '../types/pattern';
-import { SOLANA_NETWORKS } from './constants';
+import { SOLANA_NETWORKS, COLLECTION_ADDRESS } from './constants';
 
 // Compact pattern encoding for on-chain storage
 // Format: name|creator|tempo|waveform|cutoff|resonance|envMod|decay|accent|steps
@@ -110,6 +112,60 @@ export function getMintFee(): number {
 
 export function getTreasuryWallet(): string | undefined {
   return TREASURY_WALLET;
+}
+
+export function getCollectionAddress(): string | undefined {
+  return COLLECTION_ADDRESS || undefined;
+}
+
+export interface CollectionResult {
+  signature: string;
+  collectionAddress: string;
+  explorerUrl: string;
+}
+
+// Create the P303 collection NFT (one-time setup)
+export async function createCollectionNFT(
+  wallet: WalletContextState,
+  network: NetworkType
+): Promise<CollectionResult> {
+  if (!wallet.publicKey || !wallet.signTransaction) {
+    throw new Error('Wallet not connected');
+  }
+
+  const endpoint = SOLANA_NETWORKS[network];
+
+  const umi = createUmi(endpoint)
+    .use(mplTokenMetadata())
+    .use(walletAdapterIdentity(wallet));
+
+  const collectionMint = generateSigner(umi);
+
+  const { signature } = await createNft(umi, {
+    mint: collectionMint,
+    name: 'Pattern 303 Collection',
+    symbol: 'P303',
+    uri: 'https://p303.xyz/collection.json',
+    sellerFeeBasisPoints: percentAmount(5),
+    isCollection: true,
+  }).sendAndConfirm(umi);
+
+  const collectionAddress = collectionMint.publicKey.toString();
+  const signatureStr = Buffer.from(signature).toString('base64');
+
+  const explorerUrl = network === 'devnet'
+    ? `https://explorer.solana.com/address/${collectionAddress}?cluster=devnet`
+    : `https://explorer.solana.com/address/${collectionAddress}`;
+
+  console.log('Collection NFT created!');
+  console.log('Collection Address:', collectionAddress);
+  console.log('Add this to your .env: VITE_COLLECTION_ADDRESS=' + collectionAddress);
+
+  return {
+    signature: signatureStr,
+    collectionAddress,
+    explorerUrl,
+  };
 }
 
 async function payMintingFee(
@@ -203,7 +259,9 @@ export async function mintPatternNFT(
   // Generate mint signer
   const mint = generateSigner(umi);
 
-  // Create NFT
+  // Create NFT with collection if configured
+  const collectionMint = COLLECTION_ADDRESS ? publicKey(COLLECTION_ADDRESS) : undefined;
+
   const { signature } = await createNft(umi, {
     mint,
     name: pattern.name.slice(0, 32), // Max 32 chars
@@ -211,9 +269,25 @@ export async function mintPatternNFT(
     uri: metadataUri,
     sellerFeeBasisPoints: percentAmount(5), // 5% royalty
     isCollection: false,
+    collection: collectionMint ? { key: collectionMint, verified: false } : undefined,
   }).sendAndConfirm(umi);
 
   const mintAddress = mint.publicKey.toString();
+
+  // Verify collection membership (signer must be collection update authority)
+  if (collectionMint) {
+    try {
+      await verifyCollectionV1(umi, {
+        metadata: findMetadataPda(umi, { mint: mint.publicKey }),
+        collectionMint,
+        authority: umi.identity,
+      }).sendAndConfirm(umi);
+      console.log('Collection verified for mint:', mintAddress);
+    } catch (e) {
+      console.warn('Could not verify collection (you may not be the collection authority):', e);
+    }
+  }
+
   const signatureStr = Buffer.from(signature).toString('base64');
 
   const explorerUrl = network === 'devnet'
@@ -266,6 +340,9 @@ export async function mintPatternNFTFree(
   // Generate mint signer
   const mint = generateSigner(umi);
 
+  // Create NFT with collection if configured
+  const collectionMint = COLLECTION_ADDRESS ? publicKey(COLLECTION_ADDRESS) : undefined;
+
   // Create NFT (no treasury fee payment)
   const { signature } = await createNft(umi, {
     mint,
@@ -274,9 +351,25 @@ export async function mintPatternNFTFree(
     uri: metadataUri,
     sellerFeeBasisPoints: percentAmount(5),
     isCollection: false,
+    collection: collectionMint ? { key: collectionMint, verified: false } : undefined,
   }).sendAndConfirm(umi);
 
   const mintAddress = mint.publicKey.toString();
+
+  // Verify collection membership (signer must be collection update authority)
+  if (collectionMint) {
+    try {
+      await verifyCollectionV1(umi, {
+        metadata: findMetadataPda(umi, { mint: mint.publicKey }),
+        collectionMint,
+        authority: umi.identity,
+      }).sendAndConfirm(umi);
+      console.log('[FREE MINT] Collection verified for mint:', mintAddress);
+    } catch (e) {
+      console.warn('[FREE MINT] Could not verify collection (you may not be the collection authority):', e);
+    }
+  }
+
   const signatureStr = Buffer.from(signature).toString('base64');
 
   const explorerUrl = network === 'devnet'

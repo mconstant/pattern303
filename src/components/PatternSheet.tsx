@@ -177,6 +177,12 @@ export function PatternSheet({
     }
   };
 
+  // Check if step is a rest (hides other values)
+  const isRest = (gate: GateType | boolean): boolean => {
+    if (typeof gate === 'boolean') return !gate;
+    return gate === 'rest';
+  };
+
   return (
     <div
       className="mx-auto w-full max-w-4xl"
@@ -380,6 +386,7 @@ export function PatternSheet({
               <td className="py-1 px-1 font-bold" style={{ borderBottom: '1px solid #999' }}>NOTE</td>
               {pattern.steps.map((step, i) => {
                 const gateInfo = getGateSymbol(step.gate);
+                const stepIsRest = isRest(step.gate);
                 return (
                   <td
                     key={i}
@@ -390,19 +397,21 @@ export function PatternSheet({
                       backgroundColor: gateInfo.active ? 'rgba(0,0,0,0.05)' : 'transparent',
                     }}
                   >
-                    {editable ? (
+                    {stepIsRest ? (
+                      <span className="text-gray-300">·</span>
+                    ) : editable ? (
                       <select
                         value={step.pitch}
                         onChange={(e) => onStepChange?.(i, { pitch: parseInt(e.target.value) })}
                         className="bg-transparent text-center w-full cursor-pointer outline-none font-bold p-0"
-                        style={{ color: gateInfo.active ? '#000' : '#999', fontSize: '9px' }}
+                        style={{ color: '#000', fontSize: '9px' }}
                       >
                         {NOTE_NAMES.map((note, idx) => (
                           <option key={idx} value={idx}>{note}</option>
                         ))}
                       </select>
                     ) : (
-                      <span className={gateInfo.active ? 'font-bold' : 'text-gray-400'}>{NOTE_NAMES[step.pitch]}</span>
+                      <span className="font-bold">{NOTE_NAMES[step.pitch]}</span>
                     )}
                   </td>
                 );
@@ -412,23 +421,30 @@ export function PatternSheet({
             {/* Octave Row */}
             <tr>
               <td className="py-1 px-1 font-bold" style={{ borderBottom: '1px solid #999' }}>OCT</td>
-              {pattern.steps.map((step, i) => (
-                <td
-                  key={i}
-                  className={`text-center py-1 px-0.5 ${editable ? 'cursor-pointer hover:bg-black/10' : ''}`}
-                  style={{ borderBottom: '1px solid #999', borderLeft: i % 4 === 0 ? '2px solid #333' : '1px solid #ccc' }}
-                  onClick={() => {
-                    if (editable) {
-                      const next = step.octave === 0 ? 1 : step.octave === 1 ? -1 : 0;
-                      onStepChange?.(i, { octave: next as -1 | 0 | 1 });
-                    }
-                  }}
-                >
-                  <span className={step.octave !== 0 ? 'font-bold' : 'text-gray-400'}>
-                    {step.octave === 1 ? '▲' : step.octave === -1 ? '▼' : '—'}
-                  </span>
-                </td>
-              ))}
+              {pattern.steps.map((step, i) => {
+                const stepIsRest = isRest(step.gate);
+                return (
+                  <td
+                    key={i}
+                    className={`text-center py-1 px-0.5 ${editable && !stepIsRest ? 'cursor-pointer hover:bg-black/10' : ''}`}
+                    style={{ borderBottom: '1px solid #999', borderLeft: i % 4 === 0 ? '2px solid #333' : '1px solid #ccc' }}
+                    onClick={() => {
+                      if (editable && !stepIsRest) {
+                        const next = step.octave === 0 ? 1 : step.octave === 1 ? -1 : 0;
+                        onStepChange?.(i, { octave: next as -1 | 0 | 1 });
+                      }
+                    }}
+                  >
+                    {stepIsRest ? (
+                      <span className="text-gray-300">·</span>
+                    ) : (
+                      <span className={step.octave !== 0 ? 'font-bold' : 'text-gray-400'}>
+                        {step.octave === 1 ? '▲' : step.octave === -1 ? '▼' : '—'}
+                      </span>
+                    )}
+                  </td>
+                );
+              })}
             </tr>
 
             {/* Gate Row */}
@@ -452,31 +468,49 @@ export function PatternSheet({
             {/* Accent Row */}
             <tr>
               <td className="py-1 px-1 font-bold" style={{ borderBottom: '1px solid #999' }}>ACC</td>
-              {pattern.steps.map((step, i) => (
-                <td
-                  key={i}
-                  className={`text-center py-1 px-0.5 ${editable ? 'cursor-pointer hover:bg-black/10' : ''}`}
-                  style={{ borderBottom: '1px solid #999', borderLeft: i % 4 === 0 ? '2px solid #333' : '1px solid #ccc' }}
-                  onClick={() => editable && onStepChange?.(i, { accent: !step.accent })}
-                >
-                  {step.accent ? <span className="font-bold">▶</span> : <span className="text-gray-400">—</span>}
-                </td>
-              ))}
+              {pattern.steps.map((step, i) => {
+                const stepIsRest = isRest(step.gate);
+                return (
+                  <td
+                    key={i}
+                    className={`text-center py-1 px-0.5 ${editable && !stepIsRest ? 'cursor-pointer hover:bg-black/10' : ''}`}
+                    style={{ borderBottom: '1px solid #999', borderLeft: i % 4 === 0 ? '2px solid #333' : '1px solid #ccc' }}
+                    onClick={() => editable && !stepIsRest && onStepChange?.(i, { accent: !step.accent })}
+                  >
+                    {stepIsRest ? (
+                      <span className="text-gray-300">·</span>
+                    ) : step.accent ? (
+                      <span className="font-bold">▶</span>
+                    ) : (
+                      <span className="text-gray-400">—</span>
+                    )}
+                  </td>
+                );
+              })}
             </tr>
 
             {/* Slide Row */}
             <tr>
               <td className="py-1 px-1 font-bold" style={{ borderBottom: '2px solid #333' }}>SLD</td>
-              {pattern.steps.map((step, i) => (
-                <td
-                  key={i}
-                  className={`text-center py-1 px-0.5 ${editable ? 'cursor-pointer hover:bg-black/10' : ''}`}
-                  style={{ borderBottom: '2px solid #333', borderLeft: i % 4 === 0 ? '2px solid #333' : '1px solid #ccc' }}
-                  onClick={() => editable && onStepChange?.(i, { slide: !step.slide })}
-                >
-                  {step.slide ? <span className="font-bold">⌒</span> : <span className="text-gray-400">—</span>}
-                </td>
-              ))}
+              {pattern.steps.map((step, i) => {
+                const stepIsRest = isRest(step.gate);
+                return (
+                  <td
+                    key={i}
+                    className={`text-center py-1 px-0.5 ${editable && !stepIsRest ? 'cursor-pointer hover:bg-black/10' : ''}`}
+                    style={{ borderBottom: '2px solid #333', borderLeft: i % 4 === 0 ? '2px solid #333' : '1px solid #ccc' }}
+                    onClick={() => editable && !stepIsRest && onStepChange?.(i, { slide: !step.slide })}
+                  >
+                    {stepIsRest ? (
+                      <span className="text-gray-300">·</span>
+                    ) : step.slide ? (
+                      <span className="font-bold">⌒</span>
+                    ) : (
+                      <span className="text-gray-400">—</span>
+                    )}
+                  </td>
+                );
+              })}
             </tr>
           </tbody>
         </table>

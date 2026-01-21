@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PatternNFT, fetchOwnedPatterns, fetchRecentPatterns } from '../lib/patternNFT';
 import { NetworkType } from '../types/pattern';
+import { syncCreatorsFromPatterns } from '../lib/creators';
 
 export function useOwnedPatterns(network: NetworkType) {
   const { publicKey, connected } = useWallet();
@@ -78,6 +79,11 @@ export function useDiscoverPatterns(network: NetworkType) {
     try {
       const recent = await fetchRecentPatterns(network, 50);
       setPatterns(recent);
+
+      // Sync creators from the discovered patterns
+      if (recent.length > 0) {
+        syncCreatorsFromPatterns(recent);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to fetch patterns');
     } finally {

@@ -1,6 +1,7 @@
 import { NetworkType } from '../types/pattern';
 import { getCachedDisplayName } from './solanaNames';
 import { fetchUserNomDeGuerre } from './nomDeGuerre';
+import { PatternNFT } from './patternNFT';
 
 // Creator profile interface
 export interface Creator {
@@ -288,7 +289,7 @@ export function getCreator(walletAddress: string): Creator | null {
   return creators[walletAddress] || null;
 }
 
-// Import creators from pattern mint tracking
+// Import creators from pattern mint tracking (legacy localStorage-based)
 export function syncCreatorsFromMints() {
   // This will be called to sync creators from the tracked mints
   const mintsKey = 'pattern303_known_mints';
@@ -337,4 +338,49 @@ export function syncCreatorsFromMints() {
   } catch (e) {
     console.warn('Failed to sync creators from mints:', e);
   }
+}
+
+// Sync creators from discovered patterns (from collection query)
+export function syncCreatorsFromPatterns(patterns: PatternNFT[]) {
+  if (!patterns || patterns.length === 0) return;
+
+  const creators = getCreators();
+  const now = Date.now();
+
+  // Group patterns by owner
+  const ownerPatterns: Record<string, PatternNFT[]> = {};
+  for (const pattern of patterns) {
+    const owner = pattern.owner;
+    if (!owner || owner === 'Unknown') continue;
+    if (!ownerPatterns[owner]) {
+      ownerPatterns[owner] = [];
+    }
+    ownerPatterns[owner].push(pattern);
+  }
+
+  // Update or create creators
+  for (const [owner, ownerPats] of Object.entries(ownerPatterns)) {
+    const count = ownerPats.length;
+
+    if (creators[owner]) {
+      // Update existing creator with potentially higher count
+      creators[owner].patternCount = Math.max(creators[owner].patternCount, count);
+      creators[owner].lastActive = now;
+    } else {
+      // Create new creator
+      creators[owner] = {
+        walletAddress: owner,
+        displayName: `${owner.slice(0, 4)}...${owner.slice(-4)}`,
+        nomDeGuerre: null,
+        patternCount: count,
+        rating: 0,
+        ratedBy: [],
+        firstSeen: now,
+        lastActive: now,
+      };
+    }
+  }
+
+  saveCreators(creators);
+  console.log(`Synced ${Object.keys(ownerPatterns).length} creators from ${patterns.length} patterns`);
 }

@@ -1,95 +1,91 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
-import { Synth303 } from '../lib/synth303';
+import { getTB303, TB303Step } from '../lib/tb303';
 import { Pattern303, GateType } from '../types/pattern';
 
-// Helper to check gate type (handles legacy boolean values)
-function getGateType(gate: GateType | boolean): GateType {
-  if (typeof gate === 'boolean') {
-    return gate ? 'note' : 'rest';
-  }
-  return gate;
+// Convert our pattern format to TB303 format
+function patternToTB303Steps(pattern: Pattern303): TB303Step[] {
+  return pattern.steps.map(step => {
+    // Handle legacy boolean gate values
+    const gateType: GateType = typeof step.gate === 'boolean'
+      ? (step.gate ? 'note' : 'rest')
+      : step.gate;
+
+    // For ties, we set slide=true and gate=true so the note continues
+    const isGateOn = gateType === 'note' || gateType === 'tie';
+    const isSlide = step.slide || gateType === 'tie';
+
+    // Convert pitch (0-12) and octave (-1, 0, 1) to MIDI note
+    // C2 = 36 (base), so pitch 0 at octave 0 = C3 = 48
+    const midiNote = 48 + step.pitch + (step.octave * 12);
+
+    return {
+      pitch: midiNote,
+      accent: step.accent && isGateOn, // Only accent if note is playing
+      slide: isSlide && isGateOn, // Only slide if note is playing
+      gate: isGateOn,
+      down: step.octave === -1,
+      up: step.octave === 1,
+    };
+  });
 }
 
 export function useSynth(pattern: Pattern303) {
-  const synthRef = useRef<Synth303 | null>(null);
-  const timerRef = useRef<number | null>(null);
+  const synthRef = useRef(getTB303());
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 
-  // Initialize synth on mount
+  // Set up step change callback
   useEffect(() => {
-    synthRef.current = new Synth303();
+    const synth = synthRef.current;
+    synth.onStepChange = (step) => {
+      setCurrentStep(step);
+    };
     return () => {
-      if (synthRef.current) {
-        synthRef.current.stop();
-      }
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
+      synth.onStepChange = undefined;
     };
   }, []);
 
   // Update synth parameters when pattern changes
   useEffect(() => {
-    if (!synthRef.current) return;
-    synthRef.current.setWaveform(pattern.waveform);
-    synthRef.current.setCutoff(pattern.cutoff);
-    synthRef.current.setResonance(pattern.resonance);
-    synthRef.current.setEnvMod(pattern.envMod);
-    synthRef.current.setDecay(pattern.decay);
-    synthRef.current.setAccent(pattern.accent);
-  }, [pattern.waveform, pattern.cutoff, pattern.resonance, pattern.envMod, pattern.decay, pattern.accent]);
+    const synth = synthRef.current;
 
-  const playStep = useCallback((stepIndex: number) => {
-    if (!synthRef.current) return;
+    // Convert 0-100 values to appropriate ranges
+    synth.setTempo(pattern.tempo);
+    synth.setWaveform(pattern.waveform === 'saw' ? 0 : 1);
 
-    const step = pattern.steps[stepIndex];
-    const gateType = getGateType(step.gate);
+    // Cutoff: 0-100 -> 100-4000 Hz (logarithmic)
+    const cutoffHz = 100 * Math.pow(40, pattern.cutoff / 100);
+    synth.setCutoff(cutoffHz);
 
-    switch (gateType) {
-      case 'note':
-        // Trigger a new note
-        synthRef.current.triggerNote(step.pitch, step.octave, step.accent, step.slide);
-        break;
-      case 'tie':
-        // Don't retrigger, let the note continue (slide to new pitch if different)
-        // We trigger with slide=true to smoothly transition
-        synthRef.current.triggerNote(step.pitch, step.octave, step.accent, true);
-        break;
-      case 'rest':
-        // Release/silence
-        synthRef.current.releaseNote();
-        break;
-    }
-  }, [pattern.steps]);
+    // Resonance: 0-100 -> 0-1
+    synth.setResonance(pattern.resonance / 100);
+
+    // Env mod: 0-100 -> 0-1
+    synth.setEnvMod(pattern.envMod / 100);
+
+    // Decay: 0-100 -> 50-2000 ms
+    synth.setDecay(50 + (pattern.decay / 100) * 1950);
+
+    // Accent: 0-100 -> 0-1
+    synth.setAccent(pattern.accent / 100);
+
+    // Update pattern
+    synth.setPattern(patternToTB303Steps(pattern));
+  }, [pattern]);
 
   const play = useCallback(() => {
     if (isPlaying) return;
+
+    const synth = synthRef.current;
+    synth.setPattern(patternToTB303Steps(pattern));
+    synth.reset();
+    synth.start();
     setIsPlaying(true);
-
-    const stepDuration = (60 / pattern.tempo) * 1000 / 4; // 16th notes
-    let step = 0;
-
-    // Play first step immediately
-    playStep(step);
-    setCurrentStep(step);
-    step = (step + 1) % 16;
-
-    timerRef.current = window.setInterval(() => {
-      playStep(step);
-      setCurrentStep(step);
-      step = (step + 1) % 16;
-    }, stepDuration);
-  }, [isPlaying, pattern.tempo, playStep]);
+  }, [isPlaying, pattern]);
 
   const stop = useCallback(() => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-    if (synthRef.current) {
-      synthRef.current.releaseNote();
-    }
+    const synth = synthRef.current;
+    synth.stop();
     setIsPlaying(false);
     setCurrentStep(0);
   }, []);
@@ -101,15 +97,6 @@ export function useSynth(pattern: Pattern303) {
       play();
     }
   }, [isPlaying, play, stop]);
-
-  // Update timer interval when tempo changes during playback
-  useEffect(() => {
-    if (isPlaying && timerRef.current) {
-      stop();
-      play();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pattern.tempo]);
 
   return {
     isPlaying,

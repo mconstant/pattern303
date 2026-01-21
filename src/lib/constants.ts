@@ -9,6 +9,7 @@ export const SOLANA_NETWORKS = {
 // Use import.meta.env in Vite apps
 export const TREASURY_WALLET = import.meta.env.VITE_TREASURY_WALLET || '';
 export const TOKEN_303_MINT = import.meta.env.VITE_303_TOKEN_MINT || '';
+export const COLLECTION_ADDRESS = import.meta.env.VITE_COLLECTION_ADDRESS || '';
 
 // Base frequencies for notes (C3 = ~130.81 Hz as base)
 export const BASE_FREQUENCY = 130.81; // C3

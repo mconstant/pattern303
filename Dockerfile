@@ -4,6 +4,7 @@ FROM node:20-alpine AS builder
 # Accept build arguments for environment variables
 ARG VITE_TREASURY_WALLET
 ARG VITE_303_TOKEN_MINT
+ARG VITE_COLLECTION_ADDRESS
 
 # Install build dependencies for native modules (usb, node-hid)
 RUN apk add --no-cache python3 make g++ linux-headers eudev-dev
@@ -22,6 +23,7 @@ COPY . .
 # Set environment variables for build
 ENV VITE_TREASURY_WALLET=$VITE_TREASURY_WALLET
 ENV VITE_303_TOKEN_MINT=$VITE_303_TOKEN_MINT
+ENV VITE_COLLECTION_ADDRESS=$VITE_COLLECTION_ADDRESS
 
 # Build the application (Vite will use env vars)
 RUN npm run build

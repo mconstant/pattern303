@@ -1,4 +1,5 @@
 import { Pattern303, DEFAULT_STEP, NetworkType } from '../types/pattern';
+import { COLLECTION_ADDRESS } from './constants';
 
 export interface PatternNFT {
   mintAddress: string;
@@ -79,6 +80,36 @@ function getDasEndpoint(network: NetworkType): string {
     : 'https://mainnet.helius-rpc.com/?api-key=15319bf4-5b40-4958-ac8d-6313aa55eb92';
 }
 
+// Extract P303 patterns from DAS API response items
+function extractPatternsFromItems(items: any[], ownerAddress?: string): PatternNFT[] {
+  const patterns: PatternNFT[] = [];
+
+  for (const item of items) {
+    // Check if it's a P303 NFT by symbol or URI pattern
+    const isP303 = item.content?.metadata?.symbol === 'P303' ||
+                   item.content?.json_uri?.includes('p303.xyz');
+
+    if (!isP303) continue;
+
+    const uri = item.content?.json_uri || '';
+    const pattern = decodePatternFromUri(uri);
+
+    if (pattern) {
+      pattern.name = item.content?.metadata?.name || 'Pattern 303';
+      patterns.push({
+        mintAddress: item.id,
+        name: item.content?.metadata?.name || 'Pattern 303',
+        owner: item.ownership?.owner || ownerAddress || 'Unknown',
+        pattern,
+        uri,
+        image: item.content?.links?.image,
+      });
+    }
+  }
+
+  return patterns;
+}
+
 // Fetch all P303 NFTs owned by a wallet
 export async function fetchOwnedPatterns(
   walletAddress: string,
@@ -108,43 +139,17 @@ export async function fetchOwnedPatterns(
       return [];
     }
 
-    // Filter for P303 NFTs and decode patterns
-    const patterns: PatternNFT[] = [];
-
-    for (const item of data.result.items) {
-      // Check if it's a P303 NFT by symbol or URI pattern
-      const isP303 = item.content?.metadata?.symbol === 'P303' ||
-                     item.content?.json_uri?.includes('p303.xyz');
-
-      if (!isP303) continue;
-
-      const uri = item.content?.json_uri || '';
-      const pattern = decodePatternFromUri(uri);
-
-      if (pattern) {
-        pattern.name = item.content?.metadata?.name || 'Pattern 303';
-        patterns.push({
-          mintAddress: item.id,
-          name: item.content?.metadata?.name || 'Pattern 303',
-          owner: walletAddress,
-          pattern,
-          uri,
-          image: item.content?.links?.image,
-        });
-      }
-    }
-
-    return patterns;
+    return extractPatternsFromItems(data.result.items, walletAddress);
   } catch (e) {
     console.error('Failed to fetch owned patterns:', e);
     return [];
   }
 }
 
-// Local storage key for tracking known P303 mints (fallback for discovery)
+// Local storage key for tracking known P303 mints
 const KNOWN_MINTS_KEY = 'pattern303_known_mints';
 
-// Save a newly minted pattern to local tracking (helps with discovery)
+// Save a newly minted pattern to local tracking
 export function trackMintedPattern(mintAddress: string, name: string, owner: string) {
   try {
     const stored = localStorage.getItem(KNOWN_MINTS_KEY);
@@ -171,121 +176,188 @@ export function getTrackedMints(): { mint: string; name: string; owner: string; 
   }
 }
 
-// Fetch recent P303 NFTs using Helius searchAssets API
-// This searches for NFTs with 'P303' symbol across all owners
+// Get unique creators from tracked mints
+function getKnownCreators(): string[] {
+  const mints = getTrackedMints();
+  const creators = new Set<string>();
+  for (const mint of mints) {
+    if (mint.owner) {
+      creators.add(mint.owner);
+    }
+  }
+  return Array.from(creators);
+}
+
+// Fetch all P303 NFTs from the collection using getAssetsByGroup
+async function fetchPatternsFromCollection(
+  network: NetworkType,
+  limit: number = 50
+): Promise<PatternNFT[]> {
+  if (!COLLECTION_ADDRESS) {
+    console.log('No collection address configured, skipping collection fetch');
+    return [];
+  }
+
+  const dasEndpoint = getDasEndpoint(network);
+
+  try {
+    console.log(`Fetching patterns from collection: ${COLLECTION_ADDRESS}`);
+
+    const response = await fetch(dasEndpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 'p303-collection',
+        method: 'getAssetsByGroup',
+        params: {
+          groupKey: 'collection',
+          groupValue: COLLECTION_ADDRESS,
+          page: 1,
+          limit: limit,
+        },
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!data.result?.items) {
+      console.log('No items found in collection');
+      return [];
+    }
+
+    console.log(`Found ${data.result.items.length} items in collection`);
+    return extractPatternsFromItems(data.result.items);
+  } catch (e) {
+    console.error('Failed to fetch patterns from collection:', e);
+    return [];
+  }
+}
+
+// Fetch recent P303 NFTs
+// Primary strategy: Query collection via getAssetsByGroup
+// Fallback: Query known creators and tracked mints (for backwards compatibility)
 export async function fetchRecentPatterns(
   network: NetworkType,
   limit: number = 50
 ): Promise<PatternNFT[]> {
+  const dasEndpoint = getDasEndpoint(network);
+  const allPatterns: PatternNFT[] = [];
+  const seenMints = new Set<string>();
+
   try {
-    const dasEndpoint = getDasEndpoint(network);
-    const patterns: PatternNFT[] = [];
+    // Primary strategy: Fetch from collection
+    if (COLLECTION_ADDRESS) {
+      const collectionPatterns = await fetchPatternsFromCollection(network, limit);
+      for (const p of collectionPatterns) {
+        if (!seenMints.has(p.mintAddress)) {
+          seenMints.add(p.mintAddress);
+          allPatterns.push(p);
+        }
+      }
 
-    // Method 1: Try searching by grouping (compressed NFTs collections)
-    // Helius DAS searchAssets can search by various criteria
-    try {
-      const searchResponse = await fetch(dasEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          id: 'p303-search',
-          method: 'searchAssets',
-          params: {
-            // Search options - looking for NFTs with p303.xyz in the URI
-            // or with P303 symbol
-            page: 1,
-            limit: limit,
-            // Helius specific search: can filter by jsonUri containing specific domain
-            // Note: This may need adjustment based on Helius API version
-            options: {
-              showUnverifiedCollections: true,
-              showCollectionMetadata: true,
+      // If we got patterns from the collection, return them
+      if (allPatterns.length > 0) {
+        return allPatterns.slice(0, limit);
+      }
+    }
+
+    // Fallback: Fetch from known creators (for patterns minted before collection was set up)
+    const creators = getKnownCreators();
+    console.log(`Fallback: Fetching patterns from ${creators.length} known creators`);
+
+    // Fetch patterns from each creator in parallel
+    const creatorPromises = creators.slice(0, 10).map(async (creatorAddress) => {
+      try {
+        const response = await fetch(dasEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: `p303-creator-${creatorAddress}`,
+            method: 'getAssetsByOwner',
+            params: {
+              ownerAddress: creatorAddress,
+              page: 1,
+              limit: 20,
             },
-          },
-        }),
-      });
+          }),
+        });
 
-      const searchData = await searchResponse.json();
+        const data = await response.json();
+        if (data.result?.items) {
+          return extractPatternsFromItems(data.result.items, creatorAddress);
+        }
+        return [];
+      } catch {
+        return [];
+      }
+    });
 
-      // If searchAssets worked and returned results, process them
-      if (searchData.result?.items && searchData.result.items.length > 0) {
-        for (const item of searchData.result.items) {
-          const isP303 = item.content?.metadata?.symbol === 'P303' ||
-                         item.content?.json_uri?.includes('p303.xyz');
+    const creatorResults = await Promise.all(creatorPromises);
+    for (const patterns of creatorResults) {
+      for (const p of patterns) {
+        if (!seenMints.has(p.mintAddress)) {
+          seenMints.add(p.mintAddress);
+          allPatterns.push(p);
+        }
+      }
+    }
 
-          if (!isP303) continue;
+    // Also fetch individually tracked mints (in case owner transferred)
+    const trackedMints = getTrackedMints();
+    const mintAddressesToFetch = trackedMints
+      .filter(m => !seenMints.has(m.mint))
+      .slice(0, 20)
+      .map(m => m.mint);
+
+    if (mintAddressesToFetch.length > 0) {
+      const mintPromises = mintAddressesToFetch.map(async (mintAddress) => {
+        try {
+          const response = await fetch(dasEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              jsonrpc: '2.0',
+              id: `p303-mint-${mintAddress}`,
+              method: 'getAsset',
+              params: { id: mintAddress },
+            }),
+          });
+
+          const data = await response.json();
+          const item = data.result;
+          if (!item) return null;
 
           const uri = item.content?.json_uri || '';
           const pattern = decodePatternFromUri(uri);
+          if (!pattern) return null;
 
-          if (pattern) {
-            pattern.name = item.content?.metadata?.name || 'Pattern 303';
-            patterns.push({
-              mintAddress: item.id,
-              name: item.content?.metadata?.name || 'Pattern 303',
-              owner: item.ownership?.owner || 'Unknown',
-              pattern,
-              uri,
-              image: item.content?.links?.image,
-            });
-          }
+          pattern.name = item.content?.metadata?.name || 'Pattern 303';
+
+          return {
+            mintAddress: item.id,
+            name: item.content?.metadata?.name || 'Pattern 303',
+            owner: item.ownership?.owner || 'Unknown',
+            pattern,
+            uri,
+            image: item.content?.links?.image,
+          } as PatternNFT;
+        } catch {
+          return null;
+        }
+      });
+
+      const mintResults = await Promise.all(mintPromises);
+      for (const p of mintResults) {
+        if (p && !seenMints.has(p.mintAddress)) {
+          seenMints.add(p.mintAddress);
+          allPatterns.push(p);
         }
       }
-    } catch (searchErr) {
-      console.log('searchAssets not available or failed, falling back to tracked mints:', searchErr);
     }
 
-    // Method 2: Fallback to locally tracked mints
-    // This provides discovery even if global search isn't available
-    if (patterns.length === 0) {
-      const trackedMints = getTrackedMints().slice(0, limit);
-
-      if (trackedMints.length > 0) {
-        const fetchPromises = trackedMints.map(async ({ mint, owner: trackedOwner }) => {
-          try {
-            const response = await fetch(dasEndpoint, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                jsonrpc: '2.0',
-                id: `p303-${mint}`,
-                method: 'getAsset',
-                params: { id: mint },
-              }),
-            });
-
-            const data = await response.json();
-            const item = data.result;
-
-            if (!item) return null;
-
-            const uri = item.content?.json_uri || '';
-            const pattern = decodePatternFromUri(uri);
-
-            if (!pattern) return null;
-
-            pattern.name = item.content?.metadata?.name || 'Pattern 303';
-
-            return {
-              mintAddress: item.id,
-              name: item.content?.metadata?.name || 'Pattern 303',
-              owner: item.ownership?.owner || trackedOwner || 'Unknown',
-              pattern,
-              uri,
-              image: item.content?.links?.image,
-            } as PatternNFT;
-          } catch {
-            return null;
-          }
-        });
-
-        const results = await Promise.all(fetchPromises);
-        patterns.push(...results.filter((p): p is PatternNFT => p !== null));
-      }
-    }
-
-    return patterns;
+    return allPatterns.slice(0, limit);
   } catch (e) {
     console.error('Failed to fetch recent patterns:', e);
     return [];
@@ -337,12 +409,10 @@ export async function fetchPatternByMint(
   }
 }
 
-// Fetch patterns by a specific creator address (for creator profiles)
+// Fetch patterns by a specific creator address
 export async function fetchPatternsByCreator(
   creatorAddress: string,
   network: NetworkType
 ): Promise<PatternNFT[]> {
-  // For now, this is the same as fetchOwnedPatterns
-  // In a more sophisticated setup, you might search by creator metadata
   return fetchOwnedPatterns(creatorAddress, network);
 }
