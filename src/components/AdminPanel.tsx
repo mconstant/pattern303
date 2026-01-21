@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { createCollectionNFT, getCollectionAddress } from '../lib/metaplex';
-import { TREASURY_WALLET } from '../lib/constants';
+import { TREASURY_WALLET, TOKEN_303_MINT } from '../lib/constants';
 
 interface AdminPanelProps {
   onClose: () => void;
@@ -48,8 +48,8 @@ export function AdminPanel({ onClose }: AdminPanelProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <div className="bg-synth-panel border border-gray-700 rounded-lg max-w-lg w-full p-6">
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-synth-panel border border-gray-700 rounded-lg max-w-lg w-full p-6 my-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-synth-accent">Admin Panel</h2>
           <button
@@ -137,6 +137,56 @@ export function AdminPanel({ onClose }: AdminPanelProps) {
                   <p className="mt-3 text-red-400 text-sm">{error}</p>
                 )}
               </>
+            )}
+          </div>
+
+          {/* 303 Token Status */}
+          <div className="bg-synth-dark rounded-lg p-4">
+            <h3 className="text-sm font-semibold text-gray-400 mb-2">303 Token Status</h3>
+            {TOKEN_303_MINT ? (
+              <div className="space-y-2">
+                <p className="text-green-400 text-sm">Token configured</p>
+                <div className="bg-black/30 rounded p-2">
+                  <code className="text-xs text-synth-silver break-all">{TOKEN_303_MINT}</code>
+                </div>
+                <a
+                  href={`https://explorer.solana.com/address/${TOKEN_303_MINT}?cluster=devnet`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-synth-accent hover:underline"
+                >
+                  View on Explorer
+                </a>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-amber-400 text-sm">No 303 token configured</p>
+                <p className="text-xs text-gray-500">
+                  The 303 token enables free minting for holders. Create it via GitHub Actions workflow.
+                </p>
+                <a
+                  href="https://github.com/mconstant/pattern303/actions/workflows/create-token.yml"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block w-full px-4 py-3 bg-purple-600 hover:bg-purple-500 text-white text-center font-semibold rounded-lg transition-colors"
+                >
+                  Create Token via GitHub Actions
+                </a>
+                <div className="bg-black/30 rounded p-3 space-y-2">
+                  <p className="text-xs text-gray-400 font-semibold">Required GitHub Secrets:</p>
+                  <ul className="text-xs text-gray-500 space-y-1">
+                    <li><code className="text-synth-silver">SOLANA_PRIVATE_KEY</code> - Treasury wallet private key</li>
+                    <li><code className="text-synth-silver">HELIUS_API_KEY</code> - Helius RPC API key</li>
+                    <li><code className="text-synth-silver">SHYFT_API_KEY</code> - Shyft API key (optional)</li>
+                  </ul>
+                </div>
+                <div className="bg-amber-900/30 border border-amber-600/50 rounded p-3">
+                  <p className="text-xs text-amber-400 mb-2">After creation, add to Docker build:</p>
+                  <code className="text-xs text-white break-all block">
+                    --build-arg VITE_303_TOKEN_MINT=&lt;mint_address&gt;
+                  </code>
+                </div>
+              </div>
             )}
           </div>
 

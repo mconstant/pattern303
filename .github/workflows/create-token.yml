@@ -1,0 +1,155 @@
+name: Create 303 Token on Pump.fun
+
+on:
+  workflow_dispatch:
+    inputs:
+      token_name:
+        description: 'Token name (e.g., "Pattern 303")'
+        required: true
+        default: 'Pattern 303'
+      token_symbol:
+        description: 'Token symbol (e.g., "303")'
+        required: true
+        default: '303'
+      token_description:
+        description: 'Token description'
+        required: true
+        default: 'The official token for Pattern 303 - a TB-303 synthesizer pattern NFT platform'
+      initial_buy_sol:
+        description: 'Initial buy amount in SOL'
+        required: true
+        default: '0.1'
+      website:
+        description: 'Website URL'
+        required: false
+        default: 'https://p303.xyz'
+      twitter:
+        description: 'Twitter URL'
+        required: false
+        default: ''
+      telegram:
+        description: 'Telegram URL'
+        required: false
+        default: ''
+      cluster:
+        description: 'Solana cluster'
+        required: true
+        default: 'devnet'
+        type: choice
+        options:
+          - devnet
+          - mainnet-beta
+
+jobs:
+  create-token:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout pattern303 repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Clone pumpfun-raydium-cli-tools
+        run: |
+          git clone https://github.com/hexnome/pumpfun-raydium-cli-tools.git
+          cd pumpfun-raydium-cli-tools
+          npm install
+
+      - name: Configure environment
+        run: |
+          cd pumpfun-raydium-cli-tools
+          cat > src/helpers/.env << EOF
+          PRIVATE_KEY=${{ secrets.SOLANA_PRIVATE_KEY }}
+          DEVNET_ENDPOINT="https://devnet.helius-rpc.com/?api-key=${{ secrets.HELIUS_API_KEY }}"
+          MAINNET_ENDPOINT="https://mainnet.helius-rpc.com/?api-key=${{ secrets.HELIUS_API_KEY }}"
+          SHYFT_API_KEY="${{ secrets.SHYFT_API_KEY }}"
+          JITO_FEE="0.0001"
+          EOF
+
+      - name: Download token image
+        run: |
+          cd pumpfun-raydium-cli-tools
+          # Use the 303 logo or a default image
+          curl -L -o token_image.png "https://raw.githubusercontent.com/${{ github.repository }}/main/public/303-logo.png" || \
+          curl -L -o token_image.png "https://via.placeholder.com/512x512.png?text=303"
+
+      - name: Generate mint keypair
+        run: |
+          cd pumpfun-raydium-cli-tools
+          mkdir -p src/pumpfunsdk/pump-keypair
+          node -e "
+            const { Keypair } = require('@solana/web3.js');
+            const fs = require('fs');
+            const keypair = Keypair.generate();
+            fs.writeFileSync('src/pumpfunsdk/pump-keypair/mint.json', JSON.stringify(Array.from(keypair.secretKey)));
+            console.log('Mint public key:', keypair.publicKey.toBase58());
+          "
+
+      - name: Create token on Pump.fun
+        id: create_token
+        run: |
+          cd pumpfun-raydium-cli-tools/src/pumpfunsdk/pumpdotfun-sdk
+
+          # Set cluster-specific endpoint
+          if [ "${{ inputs.cluster }}" == "mainnet-beta" ]; then
+            export CLUSTER="mainnet"
+          else
+            export CLUSTER="devnet"
+          fi
+
+          echo "Creating token on $CLUSTER..."
+
+          node src/createAndBuy.js \
+            --pathToMintKeypair "../pump-keypair/mint.json" \
+            --sol "${{ inputs.initial_buy_sol }}" \
+            --name "${{ inputs.token_name }}" \
+            --symbol "${{ inputs.token_symbol }}" \
+            --description "${{ inputs.token_description }}" \
+            --website "${{ inputs.website }}" \
+            --twitter "${{ inputs.twitter }}" \
+            --telegram "${{ inputs.telegram }}" \
+            --file "../../../token_image.png" \
+            2>&1 | tee output.log
+
+          # Extract mint address from output
+          MINT_ADDRESS=$(grep -oP 'mint: \K[A-Za-z0-9]+' output.log || echo "Check logs for mint address")
+          echo "mint_address=$MINT_ADDRESS" >> $GITHUB_OUTPUT
+
+      - name: Output results
+        run: |
+          echo "================================================"
+          echo "Token Creation Complete!"
+          echo "================================================"
+          echo ""
+          echo "Token Name: ${{ inputs.token_name }}"
+          echo "Token Symbol: ${{ inputs.token_symbol }}"
+          echo "Cluster: ${{ inputs.cluster }}"
+          echo "Initial Buy: ${{ inputs.initial_buy_sol }} SOL"
+          echo ""
+          echo "Mint Address: ${{ steps.create_token.outputs.mint_address }}"
+          echo ""
+          echo "Next steps:"
+          echo "1. Add VITE_303_TOKEN_MINT=${{ steps.create_token.outputs.mint_address }} to your environment"
+          echo "2. Rebuild and redeploy the app"
+          echo "================================================"
+
+      - name: Create summary
+        run: |
+          echo "## Token Created Successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Name | ${{ inputs.token_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Symbol | ${{ inputs.token_symbol }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Cluster | ${{ inputs.cluster }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Initial Buy | ${{ inputs.initial_buy_sol }} SOL |" >> $GITHUB_STEP_SUMMARY
+          echo "| Mint Address | \`${{ steps.create_token.outputs.mint_address }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Environment Variable" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "VITE_303_TOKEN_MINT=${{ steps.create_token.outputs.mint_address }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
