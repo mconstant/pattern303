@@ -65,6 +65,7 @@ jobs:
           build-args: |
             VITE_TREASURY_WALLET=${{ secrets.VITE_TREASURY_WALLET }}
             VITE_303_TOKEN_MINT=${{ secrets.VITE_303_TOKEN_MINT }}
+            VITE_COLLECTION_ADDRESS=${{ secrets.VITE_COLLECTION_ADDRESS }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
