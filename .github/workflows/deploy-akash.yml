@@ -87,8 +87,12 @@ jobs:
           AKASH_KEYRING_BACKEND: file
           AKASH_KEY_PASSWORD: ${{ secrets.AKASH_KEY_PASSWORD }}
         run: |
-          mkdir -p ~/.akash
-          echo "${{ secrets.AKASH_WALLET_KEY }}" | base64 -d > ~/.akash/keyring-file
+          # Create keyring directory structure
+          mkdir -p ~/.akash/keyring-file
+          # Decode and extract the keyring tar archive
+          echo "${{ secrets.AKASH_WALLET_KEY }}" | base64 -d | tar -xzf - -C ~/.akash/keyring-file
+          # Verify keyring setup
+          ls -la ~/.akash/keyring-file/
 
       - name: Prepare SDL file
         env:
