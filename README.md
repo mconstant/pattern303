@@ -112,53 +112,72 @@ These secrets are injected as build arguments into the Docker image.
 | `AKASH_ACCOUNT_ADDRESS` | Your Akash wallet account address | Generated during keyring setup |
 | `AKASH_DEPLOYMENT_DSEQ` | Deployment sequence number (optional) | Set after first deployment to enable updates |
 
-**Setting up Akash Wallet from BIP39 Mnemonic**:
+**Setting up Akash Wallet from BIP39 Mnemonic** (Local Setup):
 
-If you have an existing BIP39 mnemonic (12 or 24 words), import it to create your Akash keyring:
+If you have an existing BIP39 mnemonic (12 or 24 words), follow these steps **locally on your machine** to import it and set up your keyring:
 
 ```bash
 # 1. Install Akash CLI (if not already installed)
 curl -sSfL https://raw.githubusercontent.com/akash-network/node/master/install.sh | sh -s -- -b /usr/local/bin
 
 # 2. Create the keyring directory
-  mkdir -p ~/.akash/keyring-file
+mkdir -p ~/.akash/keyring-file
 
 # 3. Import your mnemonic into the keyring
 akash keys add my-akash-account --recover --keyring-backend file --home ~/.akash
 
 # 4. When prompted, paste your BIP39 mnemonic (12 or 24 words)
-# 5. Set a secure keyring password when prompted - you'll need this for CI/CD
+# 5. When prompted, set a SECURE keyring passphrase (remember this!)
+#    Example: "Tr0p1c@l$Sunf1sh?" (use a complex passphrase with uppercase, numbers, symbols)
+#    This passphrase is NOT the same as your wallet password
 
 # 6. Verify your account was created
 akash keys list --keyring-backend file --home ~/.akash
 
-# 7. Save your account address (you'll need it as AKASH_ACCOUNT_ADDRESS secret)
-akash keys show my-akash-account --keyring-backend file --home ~/.akash -a
+# 7. Get your account address and save it
+AKASH_ACCOUNT=$(akash keys show my-akash-account --keyring-backend file --home ~/.akash -a)
+echo "Your Akash Account Address: $AKASH_ACCOUNT"
 ```
 
-**Creating GitHub Secrets from Akash Keyring**:
+**Extract and Set GitHub Secrets**:
+
+After setting up your keyring locally, create the GitHub secrets:
 
 ```bash
-# 1. Create the base64-encoded keyring backup
+# 1. Create base64-encoded keyring backup
 cd ~/.akash/keyring-file
 tar czf ../keyring-backup.tar.gz .
 cd ..
+KEYRING_BASE64=$(cat keyring-backup.tar.gz | base64)
 
-# 2. Encode as base64
-cat keyring-backup.tar.gz | base64 > keyring-base64.txt
+# 2. Get your account address (if not already saved)
+AKASH_ACCOUNT=$(akash keys show my-akash-account --keyring-backend file --home ~/.akash -a)
 
-# 3. Copy the contents
-cat keyring-base64.txt
-
-# 4. In GitHub: Settings → Secrets and variables → Actions
-#    Add secret: AKASH_WALLET_KEY = [paste contents from keyring-base64.txt]
-
-# 5. Add other required Akash secrets:
-#    - AKASH_KEY_PASSWORD = [the password you set in step 5 above]
-#    - AKASH_ACCOUNT_ADDRESS = [output from step 7 above, starts with "akash1..."]
-#    - AKASH_NODE = "https://rpc.akash.network:443"
-#    - AKASH_CHAIN_ID = "akash"
+# 3. Display values to set as GitHub secrets
+echo "Set these as GitHub Secrets (Settings → Secrets and variables → Actions):"
+echo ""
+echo "AKASH_WALLET_KEY:"
+echo "$KEYRING_BASE64"
+echo ""
+echo "AKASH_ACCOUNT_ADDRESS:"
+echo "$AKASH_ACCOUNT"
+echo ""
+echo "AKASH_KEY_PASSWORD:"
+echo "[Enter the passphrase you set in step 5 above]"
+echo ""
+echo "Other secrets to add:"
+echo "AKASH_NODE = https://rpc.akash.network:443"
+echo "AKASH_CHAIN_ID = akash"
 ```
+
+Then in GitHub:
+1. Go to your repository **Settings** → **Secrets and variables** → **Actions**
+2. Click **New repository secret** for each of these:
+   - `AKASH_WALLET_KEY` = [the base64 output from above]
+   - `AKASH_ACCOUNT_ADDRESS` = [your akash1... address]
+   - `AKASH_KEY_PASSWORD` = [the passphrase you created locally]
+   - `AKASH_NODE` = `https://rpc.akash.network:443`
+   - `AKASH_CHAIN_ID` = `akash`
 
 **Funding Your Akash Account**:
 

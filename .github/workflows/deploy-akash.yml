@@ -110,12 +110,19 @@ jobs:
           AKASH_KEYRING_BACKEND: file
           AKASH_FROM: ${{ secrets.AKASH_ACCOUNT_ADDRESS }}
         run: |
-          # Check if certificate exists, create if not
-          if ! printf '%s\n' "${{ secrets.AKASH_KEY_PASSWORD }}" | akash query cert list --owner $AKASH_FROM --state valid -o json 2>/dev/null | jq -e '.certificates | length > 0' > /dev/null 2>&1; then
-            echo "Creating new certificate..."
-            printf '%s\n' "${{ secrets.AKASH_KEY_PASSWORD }}" | akash tx cert create client --from $AKASH_FROM --yes
+          # Always create a fresh certificate for this deployment
+          echo "Creating certificate for deployment..."
+          printf '%s\n' "${{ secrets.AKASH_KEY_PASSWORD }}" | akash tx cert create client --from $AKASH_FROM --yes
+          
+          # Wait a moment for the transaction to be processed
+          sleep 5
+          
+          # Verify certificate was created
+          echo "Verifying certificate..."
+          if printf '%s\n' "${{ secrets.AKASH_KEY_PASSWORD }}" | akash query cert list --owner $AKASH_FROM -o json 2>/dev/null | jq -e '.certificates | length > 0' > /dev/null 2>&1; then
+            echo "✓ Certificate created successfully"
           else
-            echo "Valid certificate exists"
+            echo "⚠ Warning: Certificate may not be confirmed yet, but proceeding with deployment"
           fi
 
       - name: Deploy to Akash
