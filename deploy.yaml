@@ -27,7 +27,6 @@ services:
       - COLLECTION_ADDRESS=${COLLECTION_ADDRESS}
       - TREASURY_PRIVATE_KEY=${TREASURY_PRIVATE_KEY}
       - SOLANA_RPC_URL=${SOLANA_RPC_URL}
-      - PORT=3001
     expose:
       - port: 80
         as: 80
@@ -36,10 +35,7 @@ services:
         accept:
           - p303.xyz
           - www.p303.xyz
-      - port: 3001
-        as: 3001
-        to:
-          - global: true
+
 
 profiles:
   compute:
