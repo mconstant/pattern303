@@ -2,13 +2,14 @@ import { useState, useCallback } from 'react';
 import { PatternEditor } from './components/PatternEditor';
 import { ProfilePage } from './components/ProfilePage';
 import { DiscoverPage } from './components/DiscoverPage';
+import { AboutPage } from './components/AboutPage';
 import { WalletContextProvider } from './components/WalletProvider';
 import { WalletButton } from './components/WalletButton';
 import { AdminPanel, useIsTreasuryWallet } from './components/AdminPanel';
 import { Pattern303 } from './types/pattern';
 import { getPumpFunUrl } from './lib/token303';
 
-type Page = 'create' | 'profile' | 'discover';
+type Page = 'create' | 'profile' | 'discover' | 'about';
 
 function AppContent() {
   const [currentPage, setCurrentPage] = useState<Page>('create');
@@ -35,6 +36,7 @@ function AppContent() {
     { id: 'create', label: 'Create' },
     { id: 'profile', label: 'My Patterns' },
     { id: 'discover', label: 'Discover' },
+    { id: 'about', label: 'About' },
   ];
 
   return (
@@ -118,6 +120,9 @@ function AppContent() {
             onLoadPattern={handleLoadPattern}
             onViewProfile={handleViewProfile}
           />
+        )}
+        {currentPage === 'about' && (
+          <AboutPage />
         )}
       </main>
 
