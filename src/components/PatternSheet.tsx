@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Pattern303, Step, GateType, PatternBank, PatternSection, PatternNumber, NetworkType } from '../types/pattern';
 import { useMint } from '../hooks/useMint';
 import { useToken303 } from '../hooks/useToken303';
@@ -181,12 +181,6 @@ export function PatternSheet({
   const { mint, reset, isMinting, mintResult, error: mintError, canMint } = useMint(pattern, network);
   const { isHolder } = useToken303(network);
   const [showMintResult, setShowMintResult] = useState(false);
-  const [tempoInput, setTempoInput] = useState(String(pattern.tempo));
-
-  // Sync tempoInput when pattern.tempo changes externally
-  useEffect(() => {
-    setTempoInput(String(pattern.tempo));
-  }, [pattern.tempo]);
 
   const regularMintFee = getMintFee();
   const treasuryWallet = getTreasuryWallet();
@@ -379,28 +373,17 @@ export function PatternSheet({
           <span className="font-bold">BPM:</span>
           {editable ? (
             <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={tempoInput}
+              type="number"
+              min={60}
+              max={300}
+              value={pattern.tempo}
               onChange={(e) => {
-                // Allow typing any digits freely
-                const val = e.target.value.replace(/[^0-9]/g, '');
-                setTempoInput(val);
-              }}
-              onBlur={() => {
-                // Validate and apply on blur
-                const val = parseInt(tempoInput) || 120;
-                const clamped = Math.max(60, Math.min(300, val));
-                setTempoInput(String(clamped));
-                onTempoChange?.(clamped);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.currentTarget.blur();
+                const val = parseInt(e.target.value);
+                if (!isNaN(val)) {
+                  onTempoChange?.(val);
                 }
               }}
-              className="w-12 bg-white/50 text-center font-bold outline-none border border-gray-400 rounded"
+              className="w-14 bg-white/50 text-center font-bold outline-none border border-gray-400 rounded"
               style={{ fontFamily: 'monospace' }}
             />
           ) : (
