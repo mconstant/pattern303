@@ -134,13 +134,13 @@ jobs:
           
           # Generate and publish certificate
           echo "Generating client certificate..."
-          yes "$AKASH_KEY_PASSWORD" | provider-services tx cert generate client \
+          printf "%s\n" "$AKASH_KEY_PASSWORD" | provider-services tx cert generate client \
             --from "$KEY_NAME" \
             --overwrite \
             -y
           
           echo "Publishing certificate to blockchain..."
-          yes "$AKASH_KEY_PASSWORD" | provider-services tx cert publish client \
+          printf "%s\n" "$AKASH_KEY_PASSWORD" | provider-services tx cert publish client \
             --from "$KEY_NAME" \
             -y
           
@@ -168,29 +168,38 @@ jobs:
           # Update if DSEQ is set AND action is not explicitly "deploy"
           if [ -n "$DSEQ" ] && [ "$ACTION" != "deploy" ]; then
             echo "Updating existing deployment $DSEQ..."
-            yes "$AKASH_KEY_PASSWORD" | provider-services tx deployment update deploy-final.yaml \
+            printf "%s\n" "$AKASH_KEY_PASSWORD" | provider-services tx deployment update deploy-final.yaml \
               --dseq $DSEQ \
               --from "$KEY_NAME" \
               -y
             
             # Send updated manifest
             echo "Sending updated manifest..."
-            PROVIDER=$(provider-services query market lease list --owner $AKASH_FROM --dseq $DSEQ -o json | jq -r '.leases[0].lease.id.provider')
-            yes "$AKASH_KEY_PASSWORD" | provider-services send-manifest deploy-final.yaml \
+            PROVIDER=$(provider-services query market lease list --owner $AKASH_FROM --dseq $DSEQ -o json | jq -r '.leases[0].lease.lease.id.provider // .leases[0].lease.id.provider')
+            printf "%s\n" "$AKASH_KEY_PASSWORD" | provider-services send-manifest deploy-final.yaml \
               --dseq $DSEQ \
               --provider $PROVIDER \
               --from "$KEY_NAME"
             echo "✓ Deployment $DSEQ updated"
           else
             echo "Creating new deployment..."
-            RESULT=$(yes "$AKASH_KEY_PASSWORD" | provider-services tx deployment create deploy-final.yaml \
+            # Use printf to send password once, then close stdin
+            printf "%s\n" "$AKASH_KEY_PASSWORD" | provider-services tx deployment create deploy-final.yaml \
               --from "$KEY_NAME" \
-              -y \
-              --output json)
+              -y
             
-            # Extract DSEQ from transaction result
-            sleep 10
-            NEW_DSEQ=$(provider-services query deployment list --owner $AKASH_FROM --state active -o json | jq -r '.deployments | sort_by(.deployment.deployment.id.dseq | tonumber) | last | .deployment.deployment.id.dseq')
+            # Wait for deployment to be indexed
+            echo "Waiting for deployment to be indexed..."
+            sleep 15
+            
+            # Extract DSEQ - try multiple possible JSON paths
+            NEW_DSEQ=$(provider-services query deployment list --owner $AKASH_FROM --state active -o json | jq -r '.deployments[-1].deployment.deployment.id.dseq // .deployments[-1].deployment.id.dseq // empty')
+            
+            # If still empty, try without state filter
+            if [ -z "$NEW_DSEQ" ] || [ "$NEW_DSEQ" = "null" ]; then
+              NEW_DSEQ=$(provider-services query deployment list --owner $AKASH_FROM -o json | jq -r '.deployments[-1].deployment.deployment.id.dseq // .deployments[-1].deployment.id.dseq // empty')
+            fi
+            
             echo "New DSEQ: $NEW_DSEQ"
 
             if [ -z "$NEW_DSEQ" ] || [ "$NEW_DSEQ" = "null" ]; then
@@ -223,28 +232,28 @@ jobs:
               exit 1
             fi
 
-            # Select cheapest bid
+            # Select cheapest bid - handle different JSON structures
             SELECTED_BID=$(echo "$BIDS" | jq -r --arg providers "$PREFERRED_PROVIDERS" '
               .bids
-              | map(select(.bid.state == "open"))
-              | map(select(.bid.bid.id.provider as $p | ($providers | split(",") | index($p))))
-              | sort_by(.bid.price.amount | tonumber)
+              | map(select(.bid.state == "open" or .bid.bid.state == "open"))
+              | map(select((.bid.bid.id.provider // .bid.id.provider) as $p | ($providers | split(",") | index($p))))
+              | sort_by((.bid.price.amount // .bid.bid.price.amount) | tonumber)
               | first
             ')
 
             if [ -z "$SELECTED_BID" ] || [ "$SELECTED_BID" = "null" ]; then
-              SELECTED_BID=$(echo "$BIDS" | jq -r '.bids | map(select(.bid.state == "open")) | sort_by(.bid.price.amount | tonumber) | first')
+              SELECTED_BID=$(echo "$BIDS" | jq -r '.bids | map(select(.bid.state == "open" or .bid.bid.state == "open")) | sort_by((.bid.price.amount // .bid.bid.price.amount) | tonumber) | first')
             fi
 
-            PROVIDER=$(echo "$SELECTED_BID" | jq -r '.bid.bid.id.provider')
-            GSEQ=$(echo "$SELECTED_BID" | jq -r '.bid.bid.id.gseq')
-            OSEQ=$(echo "$SELECTED_BID" | jq -r '.bid.bid.id.oseq')
+            PROVIDER=$(echo "$SELECTED_BID" | jq -r '.bid.bid.id.provider // .bid.id.provider')
+            GSEQ=$(echo "$SELECTED_BID" | jq -r '.bid.bid.id.gseq // .bid.id.gseq')
+            OSEQ=$(echo "$SELECTED_BID" | jq -r '.bid.bid.id.oseq // .bid.id.oseq')
 
             echo "Selected provider: $PROVIDER"
 
             # Create lease
             echo "Creating lease..."
-            yes "$AKASH_KEY_PASSWORD" | provider-services tx market lease create \
+            printf "%s\n" "$AKASH_KEY_PASSWORD" | provider-services tx market lease create \
               --dseq $DSEQ \
               --provider $PROVIDER \
               --from "$KEY_NAME" \
@@ -254,14 +263,14 @@ jobs:
 
             # Send manifest
             echo "Sending manifest..."
-            yes "$AKASH_KEY_PASSWORD" | provider-services send-manifest deploy-final.yaml \
+            printf "%s\n" "$AKASH_KEY_PASSWORD" | provider-services send-manifest deploy-final.yaml \
               --dseq $DSEQ \
               --provider $PROVIDER \
               --from "$KEY_NAME"
 
             # Get service status
             sleep 5
-            SERVICE_STATUS=$(yes "$AKASH_KEY_PASSWORD" | provider-services lease-status \
+            SERVICE_STATUS=$(printf "%s\n" "$AKASH_KEY_PASSWORD" | provider-services lease-status \
               --dseq $DSEQ \
               --provider $PROVIDER \
               --from "$KEY_NAME" 2>/dev/null || echo "{}")
@@ -289,7 +298,7 @@ jobs:
           DSEQ="${{ vars.AKASH_DEPLOYMENT_DSEQ }}"
           if [ -n "$DSEQ" ]; then
             echo "Closing deployment $DSEQ..."
-            yes "$AKASH_KEY_PASSWORD" | provider-services tx deployment close \
+            printf "%s\n" "$AKASH_KEY_PASSWORD" | provider-services tx deployment close \
               --dseq $DSEQ \
               --from "$KEY_NAME" \
               -y
