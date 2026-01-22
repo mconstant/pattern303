@@ -135,7 +135,7 @@ jobs:
           
           # Generate certificate locally
           echo "Generating certificate..."
-          echo "$AKASH_KEY_PASSWORD" | akash tx cert generate client \
+          (echo "$AKASH_KEY_PASSWORD"; sleep 1) | akash tx cert generate client \
             --keyring-backend file \
             --home ~/.akash \
             --from "$KEY_NAME" \
@@ -146,7 +146,7 @@ jobs:
           
           # Publish certificate on-chain
           echo "Publishing certificate on-chain..."
-          echo "$AKASH_KEY_PASSWORD" | akash tx cert publish client \
+          (echo "$AKASH_KEY_PASSWORD"; sleep 1) | akash tx cert publish client \
             --keyring-backend file \
             --home ~/.akash \
             --from "$KEY_NAME" \
@@ -159,7 +159,7 @@ jobs:
           
           # Verify certificate was published
           echo "Verifying certificate..."
-          if echo "$AKASH_KEY_PASSWORD" | akash query cert list --owner $AKASH_FROM -o json 2>/dev/null | jq -e '.certificates | length > 0' > /dev/null 2>&1; then
+          if (echo "$AKASH_KEY_PASSWORD"; sleep 1) | akash query cert list --owner $AKASH_FROM -o json 2>/dev/null | jq -e '.certificates | length > 0' > /dev/null 2>&1; then
             echo "✓ Certificate created and published successfully"
           else
             echo "⚠ Warning: Certificate may not be confirmed yet, but proceeding with deployment"
@@ -187,7 +187,7 @@ jobs:
 
           if [ -n "$DSEQ" ] && [ "${{ github.event.inputs.action }}" = "update" ]; then
             echo "Updating existing deployment $DSEQ..."
-            echo "$AKASH_KEY_PASSWORD" | akash tx deployment update deploy-final.yaml \
+            (echo "$AKASH_KEY_PASSWORD"; sleep 1) | akash tx deployment update deploy-final.yaml \
               --dseq $DSEQ \
               --keyring-backend file \
               --home ~/.akash \
@@ -198,7 +198,7 @@ jobs:
           else
             echo "Creating new deployment..."
             # Create deployment and capture the DSEQ
-            RESULT=$(echo "$AKASH_KEY_PASSWORD" | akash tx deployment create deploy-final.yaml \
+            RESULT=$((echo "$AKASH_KEY_PASSWORD"; sleep 1) | akash tx deployment create deploy-final.yaml \
               --keyring-backend file \
               --home ~/.akash \
               --from "$KEY_NAME" \
@@ -234,7 +234,7 @@ jobs:
           DSEQ="${{ secrets.AKASH_DEPLOYMENT_DSEQ }}"
           if [ -n "$DSEQ" ]; then
             echo "Closing deployment $DSEQ..."
-            echo "$AKASH_KEY_PASSWORD" | akash tx deployment close \
+            (echo "$AKASH_KEY_PASSWORD"; sleep 1) | akash tx deployment close \
               --dseq $DSEQ \
               --keyring-backend file \
               --home ~/.akash \
