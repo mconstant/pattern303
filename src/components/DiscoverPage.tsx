@@ -85,7 +85,7 @@ export function DiscoverPage({ onLoadPattern, onViewProfile }: DiscoverPageProps
         <div className="font-mono font-bold text-amber-400 mb-1">$303 holder perks</div>
         <ul className="list-disc list-inside space-y-1 text-gray-300">
           <li>Hold <span className="font-bold">≥ 303 $303</span> to mint patterns <span className="font-bold">for free</span>.</li>
-          <li>Nom de guerre mints are discounted for $303 holders.</li>
+          <li><span title="Your unique artist name on Pattern 303, stored as an NFT on Solana" className="cursor-help border-b border-dotted border-gray-400">Nom de guerre</span> mints are discounted for $303 holders.</li>
         </ul>
         <a
           className="inline-flex items-center gap-1 mt-2 text-amber-400 hover:text-amber-300 font-mono text-xs"

@@ -250,7 +250,10 @@ export function ProfilePage({ onLoadPattern, viewingAddress, onBackToOwnProfile 
                   <h2 className="text-2xl font-bold text-synth-accent">
                     {displayNomDeGuerre}
                   </h2>
-                  <span className="text-xs text-gray-500 bg-gray-700 px-2 py-0.5 rounded">
+                  <span
+                    className="text-xs text-gray-500 bg-gray-700 px-2 py-0.5 rounded cursor-help"
+                    title="Your unique artist name on Pattern 303, stored as an NFT on Solana"
+                  >
                     nom de guerre
                   </span>
                   {isOwnProfile && (
@@ -266,6 +269,7 @@ export function ProfilePage({ onLoadPattern, viewingAddress, onBackToOwnProfile 
                 <button
                   onClick={() => setShowNdgForm(true)}
                   className="text-synth-accent hover:text-orange-400 text-sm"
+                  title="Your unique artist name on Pattern 303, stored as an NFT on Solana"
                 >
                   + Claim your nom de guerre
                 </button>
@@ -286,7 +290,7 @@ export function ProfilePage({ onLoadPattern, viewingAddress, onBackToOwnProfile 
                   ? `$${tokenSymbol} perks active • ${balance.toFixed(2)} held`
                   : `Hold ${threshold}+ $${tokenSymbol} for perks`}
               </span>
-              <span className="text-gray-500">Free pattern mints • Discounted nom de guerre</span>
+              <span className="text-gray-500">Free pattern mints • <span title="Your unique artist name on Pattern 303, stored as an NFT on Solana" className="cursor-help border-b border-dotted border-gray-400">Discounted nom de guerre</span></span>
               {!isHolder && (
                 <a
                   className="text-amber-400 hover:text-amber-300 font-mono"
@@ -311,8 +315,9 @@ export function ProfilePage({ onLoadPattern, viewingAddress, onBackToOwnProfile 
         {/* Nom de Guerre Form - only for own profile */}
         {isOwnProfile && showNdgForm && (
           <div className="mt-6 pt-6 border-t border-gray-700">
-            <h3 className="text-sm font-bold text-synth-silver mb-4">
+            <h3 className="text-sm font-bold text-synth-silver mb-4 flex items-center gap-2">
               {hasNomDeGuerre ? 'Change your Nom de Guerre' : 'Claim your Nom de Guerre'}
+              <span title="Your unique artist name on Pattern 303, stored as an NFT on Solana" className="text-xs text-gray-500 cursor-help">(?)</span>
             </h3>
             <div className="flex gap-2 items-start">
               <div className="flex-1">

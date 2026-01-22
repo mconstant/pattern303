@@ -81,6 +81,7 @@ export function CreatorDirectory({ currentUserWallet, onSelectCreator }: Creator
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, address, or nom de guerre..."
+            title="Search by wallet address, display name, or nom de guerre (artist name)"
             className="w-full px-4 py-2 pr-10 font-mono text-sm bg-white border border-amber-300 rounded-lg focus:outline-none focus:border-amber-500 text-amber-900 placeholder-amber-400"
           />
           {search && (

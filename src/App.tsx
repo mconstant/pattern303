@@ -97,7 +97,7 @@ function AppContent() {
       <main className="max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-4 flex-grow w-full">
         <div className="mb-3 bg-synth-panel border border-gray-700 rounded-lg px-3 py-2 text-xs sm:text-sm text-gray-200 flex flex-wrap items-center gap-2 sm:gap-3">
           <span className="font-mono font-bold text-amber-400">$303 perks</span>
-          <span className="text-gray-300">Hold ≥303 $303 to mint patterns for free and get discounted nom de guerre mints.</span>
+          <span className="text-gray-300">Hold ≥303 $303 to mint patterns for free and get discounted <span title="Your unique artist name on Pattern 303, stored as an NFT on Solana" className="cursor-help border-b border-dotted border-gray-400">nom de guerre</span> mints.</span>
           <a
             className="text-amber-400 hover:text-amber-300 font-mono"
             href={getPumpFunUrl()}
