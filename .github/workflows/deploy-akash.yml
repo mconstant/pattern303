@@ -134,8 +134,8 @@ jobs:
           
           # Generate and publish certificate
           echo "Generating client certificate..."
-          # Create a temporary password file
-          echo "$AKASH_KEY_PASSWORD" > /tmp/akash_pass.txt
+          # Create a temporary password file with multiple lines (in case it prompts multiple times)
+          for i in {1..10}; do echo "$AKASH_KEY_PASSWORD"; done > /tmp/akash_pass.txt
           
           # Use the password file with input redirection
           provider-services tx cert generate client \
@@ -172,8 +172,8 @@ jobs:
           DSEQ="${{ vars.AKASH_DEPLOYMENT_DSEQ }}"
           ACTION="${{ github.event.inputs.action }}"
 
-          # Create password file for all operations
-          echo "$AKASH_KEY_PASSWORD" > /tmp/akash_pass.txt
+          # Create password file for all operations (multiple lines in case of multiple prompts)
+          for i in {1..10}; do echo "$AKASH_KEY_PASSWORD"; done > /tmp/akash_pass.txt
           
           # Update if DSEQ is set AND action is not explicitly "deploy"
           if [ -n "$DSEQ" ] && [ "$ACTION" != "deploy" ]; then
@@ -307,7 +307,7 @@ jobs:
           AKASH_GAS_PRICES: 0.025uakt
           AKASH_SIGN_MODE: amino-json
         run: |
-          echo "$AKASH_KEY_PASSWORD" > /tmp/akash_pass.txt
+          for i in {1..10}; do echo "$AKASH_KEY_PASSWORD"; done > /tmp/akash_pass.txt
           
           DSEQ="${{ vars.AKASH_DEPLOYMENT_DSEQ }}"
           if [ -n "$DSEQ" ]; then
