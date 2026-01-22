@@ -233,9 +233,13 @@ jobs:
               exit 1
             fi
 
-            # Save DSEQ to repository variable
+            # Save DSEQ to repository variable (requires PAT or manual setup)
             echo "Saving DSEQ to repository variable..."
-            gh variable set AKASH_DEPLOYMENT_DSEQ --body "$NEW_DSEQ"
+            if gh variable set AKASH_DEPLOYMENT_DSEQ --body "$NEW_DSEQ" 2>/dev/null; then
+              echo "✓ DSEQ saved to repository variable"
+            else
+              echo "::warning::Could not auto-save DSEQ. Run: gh variable set AKASH_DEPLOYMENT_DSEQ --body '$NEW_DSEQ'"
+            fi
             DSEQ="$NEW_DSEQ"
 
             # Wait for bids
