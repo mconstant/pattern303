@@ -2,7 +2,11 @@ import { useState } from 'react';
 
 type AboutTab = 'welcome' | 'museum' | 'inspiration';
 
-export function AboutPage() {
+interface AboutPageProps {
+  onNavigate?: (page: 'create' | 'discover') => void;
+}
+
+export function AboutPage({ onNavigate }: AboutPageProps) {
   const [activeTab, setActiveTab] = useState<AboutTab>('welcome');
 
   const hardwareItems = [
@@ -153,7 +157,7 @@ export function AboutPage() {
             <h2 className="text-2xl font-bold text-amber-400">Hey there! Welcome to Pattern 303</h2>
 
             <p className="text-gray-300 leading-relaxed">
-              I'm <span className="text-amber-300 font-bold">mconstant</span>, and I built this site out of a simple desire: to have a place where I could definitively store and organize all my 303 patterns in one spot. After getting a physical machine recently as a gift I wanted a mobile-first webapp that was capable of storing and viewing patterns in a way that is easy to work with while programming the physical TB-303 or transcribing patterns off of them for later use... anywhere... anytime.
+              I'm <span className="text-amber-300 font-bold">mconstant</span>, and I built this site to store and organize TB-303 patterns in one place—a mobile-first webapp for programming and transcribing patterns anytime, anywhere.
             </p>
 
             <div className="border-l-4 border-amber-500 pl-4 py-2 bg-amber-900/20">
@@ -332,6 +336,26 @@ export function AboutPage() {
               <p className="text-gray-400 text-xs">
                 Future update: On-chain avatar storage is planned! For now, your ASCII art is just for fun and will stay on the device you created it on.
               </p>
+            </div>
+
+            <div className="bg-gradient-to-r from-amber-900/40 to-orange-900/40 border border-amber-600 rounded-lg p-6 text-center space-y-4 mt-6">
+              <p className="text-amber-100 text-lg font-bold">
+                Now go create some patterns or check out the community creations.
+              </p>
+              <div className="flex gap-3 justify-center flex-wrap">
+                <button
+                  onClick={() => onNavigate?.('create')}
+                  className="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg transition-colors"
+                >
+                  Create Patterns
+                </button>
+                <button
+                  onClick={() => onNavigate?.('discover')}
+                  className="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-lg transition-colors"
+                >
+                  Explore Community
+                </button>
+              </div>
             </div>
           </div>
         </div>

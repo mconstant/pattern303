@@ -128,7 +128,7 @@ function AppContent() {
           />
         )}
         {currentPage === 'about' && (
-          <AboutPage />
+          <AboutPage onNavigate={setCurrentPage} />
         )}
       </main>
 
