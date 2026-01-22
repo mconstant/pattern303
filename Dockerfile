@@ -5,6 +5,7 @@ FROM node:20-alpine AS builder
 ARG VITE_TREASURY_WALLET
 ARG VITE_303_TOKEN_MINT
 ARG VITE_COLLECTION_ADDRESS
+ARG VITE_SOLANA_NETWORK
 
 # Install build dependencies for native modules (usb, node-hid)
 RUN apk add --no-cache python3 make g++ linux-headers eudev-dev

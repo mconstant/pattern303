@@ -95,7 +95,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ needs.set-environment.outputs.environment }}
           tags: |
             type=sha,prefix=
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
@@ -165,6 +165,8 @@ jobs:
       - name: Prepare SDL file
         env:
           GITHUB_USERNAME: ${{ github.repository_owner }}
+          GITHUB_REPO: ${{ github.event.repository.name }}
+          GITHUB_ENVIRONMENT: ${{ needs.set-environment.outputs.environment }}
         run: |
           # Use short SHA (7 chars) to match Docker tag
           export IMAGE_TAG=$(echo "${{ github.sha }}" | cut -c1-7)
