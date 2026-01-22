@@ -117,7 +117,7 @@ function AppContent() {
 
 export default function App() {
   return (
-    <WalletContextProvider network="devnet">
+    <WalletContextProvider network={import.meta.env.VITE_SOLANA_NETWORK === 'mainnet-beta' ? 'mainnet-beta' : 'devnet'}>
       <AppContent />
     </WalletContextProvider>
   );

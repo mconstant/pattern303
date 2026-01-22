@@ -20,7 +20,7 @@ version: "2.0"
 services:
   web:
     # Image must be built with VITE_TREASURY_WALLET and VITE_303_TOKEN_MINT args
-    image: ghcr.io/${GITHUB_USERNAME}/pattern303:${IMAGE_TAG}
+    image: ghcr.io/${GITHUB_USERNAME}/${GITHUB_REPO}-${GITHUB_ENVIRONMENT}:${IMAGE_TAG}
     expose:
       - port: 80
         as: 80
