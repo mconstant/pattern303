@@ -114,6 +114,7 @@ jobs:
             VITE_303_TOKEN_MINT=${{ secrets.VITE_303_TOKEN_MINT }}
             VITE_COLLECTION_ADDRESS=${{ secrets.VITE_COLLECTION_ADDRESS }}
             VITE_SOLANA_NETWORK=${{ needs.set-environment.outputs.solana_network }}
+            VITE_HELIUS_API_KEY=${{ secrets.VITE_HELIUS_API_KEY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

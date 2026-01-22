@@ -1,8 +1,15 @@
 import { clusterApiUrl } from '@solana/web3.js';
 
+// Use Helius RPC if API key is available, otherwise fall back to public endpoints
+const HELIUS_API_KEY = import.meta.env.VITE_HELIUS_API_KEY || '';
+
 export const SOLANA_NETWORKS = {
-  'devnet': clusterApiUrl('devnet'),
-  'mainnet-beta': clusterApiUrl('mainnet-beta'),
+  'devnet': HELIUS_API_KEY 
+    ? `https://devnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`
+    : clusterApiUrl('devnet'),
+  'mainnet-beta': HELIUS_API_KEY
+    ? `https://mainnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`
+    : clusterApiUrl('mainnet-beta'),
 } as const;
 
 // Environment variables (from .env or OS env vars)
