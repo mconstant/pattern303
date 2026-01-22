@@ -134,15 +134,22 @@ jobs:
           
           # Generate and publish certificate
           echo "Generating client certificate..."
-          printf "%s\n" "$AKASH_KEY_PASSWORD" | provider-services tx cert generate client \
+          # Create a temporary password file
+          echo "$AKASH_KEY_PASSWORD" > /tmp/akash_pass.txt
+          
+          # Use the password file with input redirection
+          provider-services tx cert generate client \
             --from "$KEY_NAME" \
             --overwrite \
-            -y
+            -y < /tmp/akash_pass.txt
           
           echo "Publishing certificate to blockchain..."
-          printf "%s\n" "$AKASH_KEY_PASSWORD" | provider-services tx cert publish client \
+          provider-services tx cert publish client \
             --from "$KEY_NAME" \
-            -y
+            -y < /tmp/akash_pass.txt
+          
+          # Clean up password file
+          rm -f /tmp/akash_pass.txt
           
           sleep 5
           echo "✓ Certificate created and published"
@@ -165,28 +172,30 @@ jobs:
           DSEQ="${{ vars.AKASH_DEPLOYMENT_DSEQ }}"
           ACTION="${{ github.event.inputs.action }}"
 
+          # Create password file for all operations
+          echo "$AKASH_KEY_PASSWORD" > /tmp/akash_pass.txt
+          
           # Update if DSEQ is set AND action is not explicitly "deploy"
           if [ -n "$DSEQ" ] && [ "$ACTION" != "deploy" ]; then
             echo "Updating existing deployment $DSEQ..."
-            printf "%s\n" "$AKASH_KEY_PASSWORD" | provider-services tx deployment update deploy-final.yaml \
+            provider-services tx deployment update deploy-final.yaml \
               --dseq $DSEQ \
               --from "$KEY_NAME" \
-              -y
+              -y < /tmp/akash_pass.txt
             
             # Send updated manifest
             echo "Sending updated manifest..."
             PROVIDER=$(provider-services query market lease list --owner $AKASH_FROM --dseq $DSEQ -o json | jq -r '.leases[0].lease.lease.id.provider // .leases[0].lease.id.provider')
-            printf "%s\n" "$AKASH_KEY_PASSWORD" | provider-services send-manifest deploy-final.yaml \
+            provider-services send-manifest deploy-final.yaml \
               --dseq $DSEQ \
               --provider $PROVIDER \
-              --from "$KEY_NAME"
+              --from "$KEY_NAME" < /tmp/akash_pass.txt
             echo "✓ Deployment $DSEQ updated"
           else
             echo "Creating new deployment..."
-            # Use printf to send password once, then close stdin
-            printf "%s\n" "$AKASH_KEY_PASSWORD" | provider-services tx deployment create deploy-final.yaml \
+            provider-services tx deployment create deploy-final.yaml \
               --from "$KEY_NAME" \
-              -y
+              -y < /tmp/akash_pass.txt
             
             # Wait for deployment to be indexed
             echo "Waiting for deployment to be indexed..."
@@ -253,27 +262,27 @@ jobs:
 
             # Create lease
             echo "Creating lease..."
-            printf "%s\n" "$AKASH_KEY_PASSWORD" | provider-services tx market lease create \
+            provider-services tx market lease create \
               --dseq $DSEQ \
               --provider $PROVIDER \
               --from "$KEY_NAME" \
-              -y
+              -y < /tmp/akash_pass.txt
 
             sleep 10
 
             # Send manifest
             echo "Sending manifest..."
-            printf "%s\n" "$AKASH_KEY_PASSWORD" | provider-services send-manifest deploy-final.yaml \
+            provider-services send-manifest deploy-final.yaml \
               --dseq $DSEQ \
               --provider $PROVIDER \
-              --from "$KEY_NAME"
+              --from "$KEY_NAME" < /tmp/akash_pass.txt
 
             # Get service status
             sleep 5
-            SERVICE_STATUS=$(printf "%s\n" "$AKASH_KEY_PASSWORD" | provider-services lease-status \
+            SERVICE_STATUS=$(provider-services lease-status \
               --dseq $DSEQ \
               --provider $PROVIDER \
-              --from "$KEY_NAME" 2>/dev/null || echo "{}")
+              --from "$KEY_NAME" < /tmp/akash_pass.txt 2>/dev/null || echo "{}")
 
             SERVICE_URL=$(echo "$SERVICE_STATUS" | jq -r '.services.web.uris[0] // empty')
             if [ -n "$SERVICE_URL" ]; then
@@ -282,6 +291,9 @@ jobs:
 
             echo "✓ Deployment complete! DSEQ: $DSEQ"
           fi
+          
+          # Clean up password file
+          rm -f /tmp/akash_pass.txt
 
       - name: Close deployment
         if: github.event.inputs.action == 'close'
@@ -295,17 +307,21 @@ jobs:
           AKASH_GAS_PRICES: 0.025uakt
           AKASH_SIGN_MODE: amino-json
         run: |
+          echo "$AKASH_KEY_PASSWORD" > /tmp/akash_pass.txt
+          
           DSEQ="${{ vars.AKASH_DEPLOYMENT_DSEQ }}"
           if [ -n "$DSEQ" ]; then
             echo "Closing deployment $DSEQ..."
-            printf "%s\n" "$AKASH_KEY_PASSWORD" | provider-services tx deployment close \
+            provider-services tx deployment close \
               --dseq $DSEQ \
               --from "$KEY_NAME" \
-              -y
+              -y < /tmp/akash_pass.txt
             echo "✓ Deployment closed"
           else
             echo "No DSEQ provided, nothing to close"
           fi
+          
+          rm -f /tmp/akash_pass.txt
 
       - name: Deployment summary
         run: |
