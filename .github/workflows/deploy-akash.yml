@@ -110,17 +110,34 @@ jobs:
           AKASH_KEYRING_BACKEND: file
           AKASH_FROM: ${{ secrets.AKASH_ACCOUNT_ADDRESS }}
         run: |
-          # Always create a fresh certificate for this deployment
-          echo "Creating certificate for deployment..."
-          printf '%s\n' "${{ secrets.AKASH_KEY_PASSWORD }}" | akash tx cert create client --from $AKASH_FROM --yes
+          # Generate certificate locally
+          echo "Generating certificate..."
+          printf '%s\n' "${{ secrets.AKASH_KEY_PASSWORD }}" | akash tx cert generate client \
+            --keyring-backend file \
+            --home ~/.akash \
+            --from my-akash-account \
+            --node $AKASH_NODE \
+            --chain-id $AKASH_CHAIN_ID \
+            --overwrite \
+            --yes
           
-          # Wait a moment for the transaction to be processed
+          # Publish certificate on-chain
+          echo "Publishing certificate on-chain..."
+          printf '%s\n' "${{ secrets.AKASH_KEY_PASSWORD }}" | akash tx cert publish client \
+            --keyring-backend file \
+            --home ~/.akash \
+            --from my-akash-account \
+            --node $AKASH_NODE \
+            --chain-id $AKASH_CHAIN_ID \
+            --yes
+          
+          # Wait for transaction to be processed
           sleep 5
           
-          # Verify certificate was created
+          # Verify certificate was published
           echo "Verifying certificate..."
           if printf '%s\n' "${{ secrets.AKASH_KEY_PASSWORD }}" | akash query cert list --owner $AKASH_FROM -o json 2>/dev/null | jq -e '.certificates | length > 0' > /dev/null 2>&1; then
-            echo "✓ Certificate created successfully"
+            echo "✓ Certificate created and published successfully"
           else
             echo "⚠ Warning: Certificate may not be confirmed yet, but proceeding with deployment"
           fi
@@ -144,13 +161,21 @@ jobs:
             echo "Updating existing deployment $DSEQ..."
             printf '%s\n' "${{ secrets.AKASH_KEY_PASSWORD }}" | akash tx deployment update deploy-final.yaml \
               --dseq $DSEQ \
-              --from $AKASH_FROM \
+              --keyring-backend file \
+              --home ~/.akash \
+              --from my-akash-account \
+              --node $AKASH_NODE \
+              --chain-id $AKASH_CHAIN_ID \
               --yes
           else
             echo "Creating new deployment..."
             # Create deployment and capture the DSEQ
             RESULT=$(printf '%s\n' "${{ secrets.AKASH_KEY_PASSWORD }}" | akash tx deployment create deploy-final.yaml \
-              --from $AKASH_FROM \
+              --keyring-backend file \
+              --home ~/.akash \
+              --from my-akash-account \
+              --node $AKASH_NODE \
+              --chain-id $AKASH_CHAIN_ID \
               --yes \
               -o json)
 
@@ -177,7 +202,14 @@ jobs:
           DSEQ="${{ secrets.AKASH_DEPLOYMENT_DSEQ }}"
           if [ -n "$DSEQ" ]; then
             echo "Closing deployment $DSEQ..."
-            printf '%s\n' "${{ secrets.AKASH_KEY_PASSWORD }}" | akash tx deployment close --dseq $DSEQ --from $AKASH_FROM --yes
+            printf '%s\n' "${{ secrets.AKASH_KEY_PASSWORD }}" | akash tx deployment close \
+              --dseq $DSEQ \
+              --keyring-backend file \
+              --home ~/.akash \
+              --from my-akash-account \
+              --node $AKASH_NODE \
+              --chain-id $AKASH_CHAIN_ID \
+              --yes
           else
             echo "No DSEQ provided, nothing to close"
           fi
