@@ -297,7 +297,7 @@ export function AboutPage() {
               </p>
               <ul className="space-y-1 text-gray-300 text-sm list-disc list-inside">
                 <li>Mint costs flow to a shared treasury wallet that pays for improving and fixing the site.</li>
-                <li>Bugs will happen—this is a passion project with no guarantees—but holding a small amount of $303 (around 300) unlocks useful functionality at a nominal cost.</li>
+                <li>Bugs will happen—this is a passion project with no guarantees—but holding a small amount of $303 (303 ackshually) unlocks useful functionality at a nominal cost.</li>
                 <li>Even if no one else uses this site, at least I will! 😵‍💫</li>
               </ul>
               <p className="text-gray-400 text-xs">
