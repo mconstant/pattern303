@@ -192,43 +192,50 @@ export function ProfilePage({ onLoadPattern, viewingAddress, onBackToOwnProfile 
             )}
             {/* Only show avatar controls for own profile */}
             {isOwnProfile && (
-              <div className="flex gap-2 text-xs">
-                {avatarMode === 'none' ? (
-                  <>
+              <>
+                <div className="flex gap-2 text-xs">
+                  {avatarMode === 'none' ? (
+                    <>
+                      <button
+                        onClick={() => setAvatarMode('camera')}
+                        className="text-synth-accent hover:text-orange-400"
+                      >
+                        Camera
+                      </button>
+                      <span className="text-gray-600">|</span>
+                      <button
+                        onClick={() => setAvatarMode('presets')}
+                        className="text-synth-accent hover:text-orange-400"
+                      >
+                        Choose Art
+                      </button>
+                      {avatar && (
+                        <>
+                          <span className="text-gray-600">|</span>
+                          <button
+                            onClick={handleClearAvatar}
+                            className="text-gray-500 hover:text-red-400"
+                          >
+                            Clear
+                          </button>
+                        </>
+                      )}
+                    </>
+                  ) : (
                     <button
-                      onClick={() => setAvatarMode('camera')}
-                      className="text-synth-accent hover:text-orange-400"
+                      onClick={() => setAvatarMode('none')}
+                      className="text-gray-400 hover:text-white"
                     >
-                      Camera
+                      Cancel
                     </button>
-                    <span className="text-gray-600">|</span>
-                    <button
-                      onClick={() => setAvatarMode('presets')}
-                      className="text-synth-accent hover:text-orange-400"
-                    >
-                      Choose Art
-                    </button>
-                    {avatar && (
-                      <>
-                        <span className="text-gray-600">|</span>
-                        <button
-                          onClick={handleClearAvatar}
-                          className="text-gray-500 hover:text-red-400"
-                        >
-                          Clear
-                        </button>
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <button
-                    onClick={() => setAvatarMode('none')}
-                    className="text-gray-400 hover:text-white"
-                  >
-                    Cancel
-                  </button>
+                  )}
+                </div>
+                {avatar && (
+                  <div className="text-xs text-yellow-500 mt-1 max-w-xs">
+                    ⚠️ Local only - not stored on-chain
+                  </div>
                 )}
-              </div>
+              </>
             )}
           </div>
 

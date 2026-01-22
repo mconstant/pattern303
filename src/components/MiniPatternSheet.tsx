@@ -209,6 +209,19 @@ export function MiniPatternSheet({ pattern, showTitle = true }: MiniPatternSheet
         <span>A:{pattern.accent}</span>
       </div>
 
+      {/* EFX/Notes Section */}
+      {pattern.efxNotes && (
+        <div
+          className="relative mt-1 pt-1"
+          style={{ borderTop: '1px solid #ddd', color: '#555', fontSize: '5px' }}
+        >
+          <div style={{ fontWeight: 'bold', marginBottom: '1px' }}>EFX/NOTES:</div>
+          <div style={{ fontSize: '4px', color: '#666', wordWrap: 'break-word', lineHeight: '1.2' }}>
+            {pattern.efxNotes}
+          </div>
+        </div>
+      )}
+
       {/* Creator */}
       {pattern.creator && (
         <div className="relative text-center mt-1" style={{ fontSize: '5px', color: '#888' }}>

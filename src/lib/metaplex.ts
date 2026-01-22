@@ -280,14 +280,18 @@ export async function mintPatternNFT(
   // Verify collection membership (signer must be collection update authority)
   if (collectionMint) {
     try {
+      console.log('[COLLECTION] Attempting to verify collection membership for mint:', mintAddress);
       await verifyCollectionV1(umi, {
         metadata: findMetadataPda(umi, { mint: mint.publicKey }),
         collectionMint,
         authority: umi.identity,
       }).sendAndConfirm(umi);
-      console.log('Collection verified for mint:', mintAddress);
+      console.log('[COLLECTION] ✓ Collection verified for mint:', mintAddress);
     } catch (e) {
-      console.warn('Could not verify collection (you may not be the collection authority):', e);
+      console.warn('[COLLECTION] ⚠️ Could not verify collection (you may not be the collection authority)');
+      console.warn('[COLLECTION] Your NFT was created successfully but is not verified in the collection yet.');
+      console.warn('[COLLECTION] It should still appear in "My Patterns" but may not show in "All Patterns" immediately.');
+      console.warn('[COLLECTION] Error details:', e);
     }
   }
 
@@ -364,14 +368,18 @@ export async function mintPatternNFTFree(
   // Verify collection membership (signer must be collection update authority)
   if (collectionMint) {
     try {
+      console.log('[COLLECTION] Attempting to verify collection membership for mint:', mintAddress);
       await verifyCollectionV1(umi, {
         metadata: findMetadataPda(umi, { mint: mint.publicKey }),
         collectionMint,
         authority: umi.identity,
       }).sendAndConfirm(umi);
-      console.log('[FREE MINT] Collection verified for mint:', mintAddress);
+      console.log('[COLLECTION] ✓ Collection verified for mint:', mintAddress);
     } catch (e) {
-      console.warn('[FREE MINT] Could not verify collection (you may not be the collection authority):', e);
+      console.warn('[COLLECTION] ⚠️ Could not verify collection (you may not be the collection authority)');
+      console.warn('[COLLECTION] Your NFT was created successfully but is not verified in the collection yet.');
+      console.warn('[COLLECTION] It should still appear in "My Patterns" but may not show in "All Patterns" immediately.');
+      console.warn('[COLLECTION] Error details:', e);
     }
   }
 

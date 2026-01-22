@@ -134,6 +134,9 @@ export function MintButton({ pattern, network }: MintButtonProps) {
               <span className="text-gray-400">Mint Address:</span>{' '}
               <code className="text-green-300">{mintResult.mintAddress.slice(0, 8)}...{mintResult.mintAddress.slice(-8)}</code>
             </p>
+            <p className="text-yellow-200 text-xs mt-2">
+              ℹ️ Your pattern may take a moment to appear in "My Patterns" and "All Patterns". Click the Refresh button on those pages if it doesn't show up immediately.
+            </p>
             <a
               href={mintResult.explorerUrl}
               target="_blank"

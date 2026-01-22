@@ -123,7 +123,7 @@ export function AboutPage() {
             <h2 className="text-2xl font-bold text-amber-400">Hey there! Welcome to Pattern 303</h2>
 
             <p className="text-gray-300 leading-relaxed">
-              I'm <span className="text-amber-300 font-bold">mconstant</span>, and I built this site out of a simple desire: to have a place where I could definitively store and organize all my 303 patterns in one spot. After decades of creating sequences on this iconic machine, I realized there wasn't a clear, practical way to capture, share, and rediscover the bass lines that made my musical journey so special.
+              I'm <span className="text-amber-300 font-bold">mconstant</span>, and I built this site out of a simple desire: to have a place where I could definitively store and organize all my 303 patterns in one spot. After getting a physical machine recently as a gift I wanted a mobile-first webapp that was capable of storing and viewing patterns in a way that is easy to work with while programming the physical TB-303 or transcribing patterns off of them for later use... anywhere... anytime.
             </p>
 
             <div className="border-l-4 border-amber-500 pl-4 py-2 bg-amber-900/20">
@@ -206,6 +206,35 @@ export function AboutPage() {
               </ul>
               <p className="text-gray-400 text-xs">
                 If you're here because you love 303 patterns, picking up some $303 is a way to keep the lights on and keep building.
+              </p>
+            </div>
+
+            <div className="bg-gray-800/60 border border-purple-700 rounded-lg p-4 space-y-3 mt-4">
+              <div className="flex items-center gap-2">
+                <span className="text-purple-300 font-bold">Nom de Guerre</span>
+                <span className="text-gray-500 text-xs">(vanity alias)</span>
+              </div>
+              <p className="text-gray-300 text-sm">
+                Your <span className="font-mono text-purple-200">nom de guerre</span> is a vanity alias—a creative handle specifically for Pattern 303. Think of it as your artist name on the site: it's what other people see when they discover your patterns.
+              </p>
+              <p className="text-gray-300 text-sm">
+                It's purely cosmetic, optional, and fun. Behind the scenes, everything is still tied to your wallet address. But if you'd rather share patterns as "acid_wizard" or "303_dreamer" instead of a long Solana address, this is how you do it.
+              </p>
+              <p className="text-gray-400 text-xs">
+                Your nom de guerre is stored on-chain as an NFT and can be updated anytime. It only exists within Pattern 303—it's not a Solana domain or universal identity.
+              </p>
+            </div>
+
+            <div className="bg-gray-800/60 border border-blue-700 rounded-lg p-4 space-y-3 mt-4">
+              <div className="flex items-center gap-2">
+                <span className="text-blue-300 font-bold">Profile ASCII Art</span>
+                <span className="text-gray-500 text-xs">(local storage)</span>
+              </div>
+              <p className="text-gray-300 text-sm">
+                Your ASCII avatar is currently stored in your browser's local storage only—it won't sync across devices or browsers unless you export/import it manually.
+              </p>
+              <p className="text-gray-400 text-xs">
+                Future update: On-chain avatar storage is planned! For now, your ASCII art is just for fun and will stay on the device you created it on.
               </p>
             </div>
           </div>
