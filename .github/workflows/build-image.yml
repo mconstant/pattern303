@@ -50,6 +50,8 @@ jobs:
             VITE_TREASURY_WALLET=${{ secrets.VITE_TREASURY_WALLET }}
             VITE_303_TOKEN_MINT=${{ secrets.VITE_303_TOKEN_MINT }}
             VITE_COLLECTION_ADDRESS=${{ secrets.VITE_COLLECTION_ADDRESS }}
+            VITE_HELIUS_API_KEY=${{ secrets.VITE_HELIUS_API_KEY }}
+            VITE_VERIFY_API_URL=${{ secrets.VITE_VERIFY_API_URL }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

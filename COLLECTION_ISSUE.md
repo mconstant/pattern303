@@ -1,5 +1,11 @@
 # Collection Verification Issue
 
+> **GitHub Issue**: [#4 - Patterns minted by users not visible in "All Patterns"](https://github.com/mconstant/pattern303/issues/4)
+>
+> **Status**: ✅ Solution implemented (Backend Verification Service)
+>
+> **Related Docs**: [IMPLEMENTATION.md](./IMPLEMENTATION.md) | [DEPLOYMENT.md](./DEPLOYMENT.md) | [COMPLETE_SETUP.md](./COMPLETE_SETUP.md)
+
 ## Problem
 
 When users mint Pattern 303 NFTs, the collection verification fails because they are not the collection authority. This causes:
@@ -64,20 +70,28 @@ Update `fetchRecentPatterns` to prioritize creator-based queries:
 
 ## Immediate User Workaround
 
-For the user asking about their "Raga Bhairav 2" pattern:
+For users whose patterns aren't appearing:
 
 1. **Check if the mint actually succeeded** - look at Solana Explorer with the mint address from the console
 2. **Wait for Helius indexing** - can take 1-5 minutes
 3. **Use the Refresh button** on "My Patterns" page
 4. **Check browser console** for the mint address and verify it exists
 
-## What I Did
+## What Was Done
 
-1. Added detailed logging to identify collection verification failures
-2. Added warning messages in console about unverified collections
-3. Improved success message to show mint address
-4. Added this documentation for future reference
+1. ✅ Added detailed logging to identify collection verification failures
+2. ✅ Added warning messages in console about unverified collections
+3. ✅ Improved success message to show mint address
+4. ✅ **Implemented Option 1: Backend Verification Service**
+5. ✅ Added this documentation for future reference
 
+## Next Steps
+
+1. **Deploy** the updated Docker image with backend service
+2. **Configure** Akash with runtime environment variables
+3. **Test** minting flow in production
+
+See [COMPLETE_SETUP.md](./COMPLETE_SETUP.md) for full deployment instructions.
 ## Next Steps
 
 1. Decide which solution to implement (Backend service recommended)

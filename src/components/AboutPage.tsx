@@ -62,11 +62,41 @@ export function AboutPage() {
     },
   ];
 
+  const softwareItems = [
+    {
+      title: 'ReBirth RB-338 (Historical - Permanently Discontinued)',
+      description: 'The original 303 software emulator that started it all. Two TB-303s, TR-808, TR-909, and effects—all in one app. Unfortunately, ReBirth was permanently discontinued due to copyright issues with Roland and is no longer available for download.',
+      link: 'https://en.wikipedia.org/wiki/ReBirth_RB-338',
+      affiliate: false,
+      image: 'https://upload.wikimedia.org/wikipedia/en/d/da/Rebirth_rb-338_screenshot.png',
+      alt: 'ReBirth RB-338 software interface screenshot',
+      linkLabel: 'Read about ReBirth on Wikipedia ↗',
+    },
+    {
+      title: 'Reason Rack (My Personal Recommendation)',
+      description: 'Reason Studios\' legendary virtual rack. Feels like real gear with virtual cables and modular routing. It\'s a full-fledged DAW that records audio, but the soft synth and effects side is also available as a plugin for other DAWs if that\'s what you prefer. I used this heavily for years and still love it.',
+      link: 'https://www.reasonstudios.com/rack',
+      affiliate: false,
+      image: 'https://www.reasonstudios.com/images/rack2.webp',
+      alt: 'Reason Rack virtual studio interface',
+      linkLabel: 'Visit Reason Studios ↗',
+    },
+    {
+      title: 'Reaktor 6 (Build Anything)',
+      description: 'Native Instruments\' modular synthesis powerhouse. Build custom 303s, granular synths, generative sequencers—anything you can imagine. Steep learning curve but infinitely powerful.',
+      link: 'https://www.native-instruments.com/en/products/komplete/synths/reaktor-6/',
+      affiliate: false,
+      image: 'https://www.native-instruments.com/typo3temp/pics/img-ce-reaktor-6-overview-05-reaktor-blocks_neu_02-9f051feee51f73542d3cfd865306ef34-d@2x.jpg',
+      alt: 'Native Instruments Reaktor 6 Blocks modular interface',
+      linkLabel: 'Visit Native Instruments ↗',
+    },
+  ];
+
   const resourceItems = [
     {
       title: 'Roland TB-303 Pattern Book',
       description: 'Classic paper pattern sheets for recording your favorite basslines. For when you want that vintage feel.',
-      link: 'https://www.amazon.com/Roland-TB-303-Pattern-book-favorites/dp/B0CH292Z3W/ref=sr_1_6?crid=2YL6C7WXO7ATL&dib=eyJ2IjoiMSJ9.KM-PV8HweRNxon757IAunQt_GKMmT5HkTUW-vdrvdrsGJx8t7rIywbyTzE5lFmq2Vgen9EzWZ1LU42PbHtPF3BaL_ZMlDU-bRZD7VCHZ1H0Pi1QowZLsD_KV7okWGskb8HC1TseLG9kA7qcWxt3IVrOstQjtEJUM8Dt-y2tyjesotevGak8RneiwsfTOk9-5O8D1twLy3dA0god9aLAHLD6_ns7TxpbkByHeGCJu3zuZA0NhpjDAu5xibFlLtu8xeT6fBhwWn7-A4pNbiCRP14RiKiNpIaitp-Jilu0GlEY.BYO-aXCJ9g266D6Nin8UffLb27SsvdjpVhs8nh4_bpY&dib_tag=se&keywords=tb+303&qid=1769094702&sprefix=tb+303%2Caps%2C198&sr=8-6',
+      link: 'https://www.amazon.com/Roland-TB-303-Pattern-book-favorites/dp/B0CH292Z3W?tag=p303-20',
       affiliate: true,
       image: 'https://m.media-amazon.com/images/S/aplus-media-library-service-media/f1e8da51-0102-4ad1-8581-5459d450c413.__CR0,0,1940,600_PT0_SX970_V1___.jpg',
       alt: 'Roland TB-303 pattern book cover',
@@ -152,7 +182,73 @@ export function AboutPage() {
             </p>
 
             <p className="text-gray-300 leading-relaxed">
-              My relationship with the 303 started in the late '90s when I first laid hands on Propellerheads' <span className="font-mono text-amber-200">ReBirth</span> and <span className="font-mono text-amber-200">Reaktor</span>. Those tools opened my eyes to what was possible with a simple synthesizer, a filter, and a sequencer. I was captivated.
+              My relationship with the 303 started in the late '90s when I first laid hands on Propellerhead's{' '}
+              <a
+                href="https://en.wikipedia.org/wiki/ReBirth_RB-338"
+                target="_blank"
+                rel="noreferrer"
+                className="font-mono text-amber-200 hover:text-amber-100 underline"
+              >
+                ReBirth RB-338
+              </a>
+              . That software was magic—two 303 emulations, an 808, an 909, and effects—all on your computer. Sadly, it was{' '}
+              <a
+                href="https://www.reasonstudios.com/rebirth"
+                target="_blank"
+                rel="noreferrer"
+                className="font-mono text-amber-200 hover:text-amber-100 underline"
+              >
+                permanently discontinued due to copyright issues
+              </a>
+              {' '}with Roland and is no longer available. Absolute legend status nonetheless.
+            </p>
+
+            <p className="text-gray-300 leading-relaxed">
+              I was also a heavy user of Propellerhead's{' '}
+              <a
+                href="https://www.reasonstudios.com/rack"
+                target="_blank"
+                rel="noreferrer"
+                className="font-mono text-amber-200 hover:text-amber-100 underline"
+              >
+                Reason
+              </a>
+              {' '}for years—it's a full-fledged DAW that records audio and feels like a real rack of gear. The soft synth and effects side is also available as a plugin for other DAWs if that's what you prefer. Highly recommended if you want that hands-on modular workflow without the physical cables. The company is now called{' '}
+              <a
+                href="https://www.reasonstudios.com/"
+                target="_blank"
+                rel="noreferrer"
+                className="font-mono text-amber-200 hover:text-amber-100 underline"
+              >
+                Reason Studios
+              </a>
+              .
+            </p>
+
+            <p className="text-gray-300 leading-relaxed">
+              And then there was{' '}
+              <a
+                href="https://www.native-instruments.com/en/products/komplete/synths/reaktor-6/"
+                target="_blank"
+                rel="noreferrer"
+                className="font-mono text-amber-200 hover:text-amber-100 underline"
+              >
+                Reaktor
+              </a>
+              {' '}by{' '}
+              <a
+                href="https://www.native-instruments.com/"
+                target="_blank"
+                rel="noreferrer"
+                className="font-mono text-amber-200 hover:text-amber-100 underline"
+              >
+                Native Instruments
+              </a>
+              —a modular synthesis environment where you can build literally anything. Want a custom 303 with extra oscillators? A granular synth? A generative sequencer? Reaktor lets you build it from the ground up. I cannot recommend it enough for the synthesis-curious.
+            </p>
+
+            <p className="text-gray-300 leading-relaxed">
+              These tools opened my eyes to what was possible with a simple synthesizer, a filter, and a sequencer. I was captivated.
             </p>
 
             <p className="text-gray-300 leading-relaxed">
@@ -257,6 +353,45 @@ export function AboutPage() {
 
               <div className="space-y-3">
                 {hardwareItems.map((item) => (
+                  <div key={item.title} className="bg-gray-800/50 rounded p-4 space-y-2">
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="w-full sm:w-48 h-32 rounded border border-gray-700 overflow-hidden bg-gray-900/70">
+                        <img
+                          src={item.image}
+                          alt={item.alt}
+                          loading="lazy"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="space-y-2 flex-1">
+                        <div className="font-bold text-amber-200">{item.title}</div>
+                        <p className="text-gray-300 text-sm">{item.description}</p>
+                        <a
+                          href={item.link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-amber-400 hover:text-amber-300 text-sm font-mono"
+                        >
+                          {item.linkLabel}
+                        </a>
+                        {item.affiliate && (
+                          <p className="text-gray-500 text-xs">
+                            📍 Affiliate disclosure: I earn a small commission if you purchase through this link, at no extra cost to you.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Software & DAWs */}
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-amber-300">💻 Software & DAWs</h3>
+
+              <div className="space-y-3">
+                {softwareItems.map((item) => (
                   <div key={item.title} className="bg-gray-800/50 rounded p-4 space-y-2">
                     <div className="flex flex-col sm:flex-row gap-3">
                       <div className="w-full sm:w-48 h-32 rounded border border-gray-700 overflow-hidden bg-gray-900/70">

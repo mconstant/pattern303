@@ -14,13 +14,32 @@ A modern, web-based synthesizer pattern sequencer inspired by the legendary Rola
 - 🌐 **Discover** - Browse and load patterns created by other users
 - ☁️ **Cloud Deploy** - Runs on Akash Network (decentralized cloud computing)
 
+## Quick Links
+
+| Documentation | Description |
+|---------------|-------------|
+| [COMPLETE_SETUP.md](COMPLETE_SETUP.md) | 📋 Full deployment checklist |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | 🚀 Akash deployment guide |
+| [GITHUB_SECRETS.md](GITHUB_SECRETS.md) | 🔐 GitHub Actions secrets |
+| [TESTING.md](TESTING.md) | 🧪 Production testing guide |
+| [AFFILIATE_SETUP.md](AFFILIATE_SETUP.md) | 💰 Affiliate links setup |
+
+## Known Issues
+
+| Issue | Status |
+|-------|--------|
+| [#4 - Patterns not visible in "All Patterns"](https://github.com/mconstant/pattern303/issues/4) | ✅ Fixed (deploy pending) |
+| [#3 - ASCII art not persisted on-chain](https://github.com/mconstant/pattern303/issues/3) | 🔄 Planned |
+
 ## Tech Stack
 
 - **Frontend**: React 18 + TypeScript + Tailwind CSS
+- **Backend**: Node.js Express (verification service)
 - **Build**: Vite + ESBuild
 - **Blockchain**: Solana Web3.js + Metaplex
 - **Deployment**: Docker + Akash SDL
 - **Audio**: Web Audio API
+- **Testing**: Playwright
 
 ## Development
 

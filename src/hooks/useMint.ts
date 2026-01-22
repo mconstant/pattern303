@@ -5,6 +5,7 @@ import { mintPatternNFT, mintPatternNFTFree, MintResult } from '../lib/metaplex'
 import { trackMintedPattern } from '../lib/patternNFT';
 import { is303Holder } from '../lib/token303';
 import { trackCreator } from '../lib/creators';
+import { requestPatternVerification } from '../lib/verifyApi';
 
 export function useMint(pattern: Pattern303, network: NetworkType) {
   const wallet = useWallet();
@@ -42,6 +43,15 @@ export function useMint(pattern: Pattern303, network: NetworkType) {
 
       // Track the creator in the creator directory
       trackCreator(wallet.publicKey.toBase58(), network).catch(console.warn);
+
+      // Request backend verification (async, don't block)
+      requestPatternVerification(result.mintAddress)
+        .then(() => {
+          console.log('[VERIFY] ✓ Pattern verified in collection:', result.mintAddress);
+        })
+        .catch(err => {
+          console.warn('[VERIFY] ⚠️ Verification request failed (pattern still minted):', err.message);
+        });
     } catch (err) {
       console.error('Minting error:', err);
       setError(err instanceof Error ? err.message : 'Failed to mint NFT');

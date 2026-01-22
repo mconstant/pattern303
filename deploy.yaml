@@ -21,6 +21,13 @@ services:
   web:
     # Image must be built with VITE_TREASURY_WALLET and VITE_303_TOKEN_MINT args
     image: ghcr.io/${GITHUB_USERNAME}/${GITHUB_REPO}-${GITHUB_ENVIRONMENT}:${IMAGE_TAG}
+    env:
+      # Backend verification service environment variables
+      # Note: VITE_ vars are baked into frontend build, these are for backend runtime
+      - COLLECTION_ADDRESS=${COLLECTION_ADDRESS}
+      - TREASURY_PRIVATE_KEY=${TREASURY_PRIVATE_KEY}
+      - SOLANA_RPC_URL=${SOLANA_RPC_URL}
+      - PORT=3001
     expose:
       - port: 80
         as: 80
@@ -29,6 +36,10 @@ services:
         accept:
           - p303.xyz
           - www.p303.xyz
+      - port: 3001
+        as: 3001
+        to:
+          - global: true
 
 profiles:
   compute:
@@ -37,7 +48,7 @@ profiles:
         cpu:
           units: 0.5
         memory:
-          size: 512Mi
+          size: 600Mi
         storage:
           size: 1Gi
 
