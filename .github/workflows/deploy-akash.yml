@@ -104,9 +104,11 @@ jobs:
 
       - name: Prepare SDL file
         env:
-          IMAGE_TAG: ${{ github.sha }}
           GITHUB_USERNAME: ${{ github.repository_owner }}
         run: |
+          # Use short SHA (7 chars) to match Docker tag
+          export IMAGE_TAG=$(echo "${{ github.sha }}" | cut -c1-7)
+          echo "Using image tag: $IMAGE_TAG"
           # Substitute environment variables in deploy.yaml
           envsubst < deploy.yaml > deploy-final.yaml
           cat deploy-final.yaml

@@ -26,8 +26,6 @@ services:
         as: 80
         to:
           - global: true
-        accept:
-          - "pattern303.akash.network"  # Optional: custom domain
 
 profiles:
   compute:
