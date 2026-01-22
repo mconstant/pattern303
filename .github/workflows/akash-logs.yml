@@ -1,0 +1,127 @@
+name: Akash Deployment Logs
+
+on:
+  workflow_dispatch:
+    inputs:
+      lines:
+        description: 'Number of log lines to fetch'
+        required: false
+        default: '100'
+        type: string
+      follow:
+        description: 'Stream logs for duration (seconds, 0 to disable)'
+        required: false
+        default: '0'
+        type: string
+
+jobs:
+  get-logs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Akash CLI
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/akash-network/node/master/install.sh | sh -s -- -b /usr/local/bin
+          akash version
+
+      - name: Setup Akash wallet
+        env:
+          AKASH_KEYRING_BACKEND: file
+        run: |
+          mkdir -p ~/.akash/keyring-file
+          echo "${{ secrets.AKASH_WALLET_KEY }}" | base64 -d | tar -xzf - -C ~/.akash/keyring-file
+
+      - name: Get deployment logs
+        env:
+          AKASH_NODE: ${{ secrets.AKASH_NODE }}
+          AKASH_CHAIN_ID: ${{ secrets.AKASH_CHAIN_ID }}
+          AKASH_KEYRING_BACKEND: file
+          AKASH_FROM: ${{ secrets.AKASH_ACCOUNT_ADDRESS }}
+          AKASH_KEY_PASSWORD: ${{ secrets.AKASH_KEY_PASSWORD }}
+        run: |
+          DSEQ="${{ secrets.AKASH_DEPLOYMENT_DSEQ }}"
+
+          if [ -z "$DSEQ" ]; then
+            echo "❌ Error: AKASH_DEPLOYMENT_DSEQ secret is not set"
+            exit 1
+          fi
+
+          KEY_NAME=$(ls ~/.akash/keyring-file/*.info 2>/dev/null | head -1 | xargs basename 2>/dev/null | sed 's/.info$//' || echo "my-akash-account")
+          echo "Using key name: $KEY_NAME"
+          echo "Deployment DSEQ: $DSEQ"
+
+          # Get lease info
+          echo "=== Fetching lease information ==="
+          LEASE_INFO=$(akash query market lease list \
+            --owner $AKASH_FROM \
+            --dseq $DSEQ \
+            --node $AKASH_NODE \
+            -o json 2>/dev/null || echo "{}")
+
+          echo "Lease info: $LEASE_INFO"
+
+          GSEQ=$(echo "$LEASE_INFO" | jq -r '.leases[0].lease.lease_id.gseq // empty')
+          OSEQ=$(echo "$LEASE_INFO" | jq -r '.leases[0].lease.lease_id.oseq // empty')
+          PROVIDER=$(echo "$LEASE_INFO" | jq -r '.leases[0].lease.lease_id.provider // empty')
+
+          if [ -z "$GSEQ" ] || [ -z "$PROVIDER" ]; then
+            echo "❌ Error: Could not find active lease for deployment $DSEQ"
+            echo "Make sure you have accepted a bid and the deployment is active."
+            exit 1
+          fi
+
+          echo "GSEQ: $GSEQ, OSEQ: $OSEQ, Provider: $PROVIDER"
+
+          # Get logs
+          echo ""
+          echo "=== Deployment Logs (last ${{ inputs.lines }} lines) ==="
+          echo ""
+
+          FOLLOW_DURATION="${{ inputs.follow }}"
+
+          if [ "$FOLLOW_DURATION" -gt 0 ] 2>/dev/null; then
+            echo "Streaming logs for $FOLLOW_DURATION seconds..."
+            timeout ${FOLLOW_DURATION}s yes "$AKASH_KEY_PASSWORD" | akash provider lease-logs \
+              --dseq $DSEQ \
+              --gseq $GSEQ \
+              --oseq $OSEQ \
+              --provider $PROVIDER \
+              --from "$KEY_NAME" \
+              --keyring-backend file \
+              --home ~/.akash \
+              --node $AKASH_NODE \
+              --follow 2>&1 || true
+          else
+            yes "$AKASH_KEY_PASSWORD" | akash provider lease-logs \
+              --dseq $DSEQ \
+              --gseq $GSEQ \
+              --oseq $OSEQ \
+              --provider $PROVIDER \
+              --from "$KEY_NAME" \
+              --keyring-backend file \
+              --home ~/.akash \
+              --node $AKASH_NODE \
+              --tail ${{ inputs.lines }} 2>&1 || echo "Failed to fetch logs - deployment may not be running"
+          fi
+
+      - name: Get deployment status
+        env:
+          AKASH_NODE: ${{ secrets.AKASH_NODE }}
+          AKASH_FROM: ${{ secrets.AKASH_ACCOUNT_ADDRESS }}
+        run: |
+          DSEQ="${{ secrets.AKASH_DEPLOYMENT_DSEQ }}"
+
+          echo ""
+          echo "=== Deployment Status ==="
+          akash query deployment get \
+            --owner $AKASH_FROM \
+            --dseq $DSEQ \
+            --node $AKASH_NODE \
+            -o json 2>/dev/null | jq '{
+              state: .deployment.state,
+              created_at: .deployment.created_at,
+              escrow_account: .escrow_account
+            }' || echo "Could not fetch deployment status"

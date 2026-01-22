@@ -187,8 +187,11 @@ jobs:
           
           # Check if we have an existing deployment
           DSEQ="${{ secrets.AKASH_DEPLOYMENT_DSEQ }}"
+          ACTION="${{ github.event.inputs.action }}"
 
-          if [ -n "$DSEQ" ] && [ "${{ github.event.inputs.action }}" = "update" ]; then
+          # Update if DSEQ is set AND action is not explicitly "deploy"
+          # This means: push with DSEQ → update, manual "update" → update, manual "deploy" → create new
+          if [ -n "$DSEQ" ] && [ "$ACTION" != "deploy" ]; then
             echo "Updating existing deployment $DSEQ..."
             yes "$AKASH_KEY_PASSWORD" | akash tx deployment update deploy-final.yaml \
               --dseq $DSEQ \
@@ -198,6 +201,7 @@ jobs:
               --node $AKASH_NODE \
               --chain-id $AKASH_CHAIN_ID \
               --yes
+            echo "✓ Deployment $DSEQ updated"
           else
             echo "Creating new deployment..."
             # Create deployment and capture the DSEQ
