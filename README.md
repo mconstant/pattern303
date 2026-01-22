@@ -69,6 +69,154 @@ npm run preview
 npm run lint
 ```
 
+## GitHub Actions Workflows
+
+This project includes three automated workflows. They require GitHub Actions secrets to be configured.
+
+### Setting Up Secrets
+
+1. Go to your GitHub repository
+2. Navigate to **Settings** → **Secrets and variables** → **Actions**
+3. Click **New repository secret**
+4. Add each secret from the tables below
+
+### Workflow 1: Build Docker Image (`build-image.yml`)
+
+**Trigger**: On push to `main`, on pull requests, or manual dispatch
+
+**Secrets Required**:
+
+| Secret Name | Description | Example |
+|---|---|---|
+| `VITE_TREASURY_WALLET` | Solana wallet address for royalties/treasury | `Gq7BUS7zV...` |
+| `VITE_303_TOKEN_MINT` | SPL token mint address for 303 token | `303Token...` |
+| `VITE_COLLECTION_ADDRESS` | NFT collection address on Metaplex | `CollectionAddr...` |
+
+These secrets are injected as build arguments into the Docker image.
+
+### Workflow 2: Deploy to Akash Network (`deploy-akash.yml`)
+
+**Trigger**: On push to `main` or manual dispatch (with action selection)
+
+**Secrets Required**:
+
+| Secret Name | Description | Setup Instructions |
+|---|---|---|
+| `VITE_TREASURY_WALLET` | Solana wallet address for royalties/treasury | Same as Build Docker Image |
+| `VITE_303_TOKEN_MINT` | SPL token mint address for 303 token | Same as Build Docker Image |
+| `VITE_COLLECTION_ADDRESS` | NFT collection address on Metaplex | Same as Build Docker Image |
+| `AKASH_KEY_PASSWORD` | Password for Akash wallet keyring | Create a secure password |
+| `AKASH_WALLET_KEY` | Base64-encoded Akash wallet keyring tar.gz | See instructions below |
+| `AKASH_NODE` | Akash RPC endpoint | https://rpc.akash.network:443 (mainnet) |
+| `AKASH_CHAIN_ID` | Akash chain ID | akash (mainnet) or akashnet-2 |
+| `AKASH_ACCOUNT_ADDRESS` | Your Akash wallet account address | Generated during keyring setup |
+| `AKASH_DEPLOYMENT_DSEQ` | Deployment sequence number (optional) | Set after first deployment to enable updates |
+
+**Setting up Akash Wallet from BIP39 Mnemonic**:
+
+If you have an existing BIP39 mnemonic (12 or 24 words), import it to create your Akash keyring:
+
+```bash
+# 1. Install Akash CLI (if not already installed)
+curl -sSfL https://raw.githubusercontent.com/akash-network/node/master/install.sh | sh -s -- -b /usr/local/bin
+
+# 2. Create the keyring directory
+  mkdir -p ~/.akash/keyring-file
+
+# 3. Import your mnemonic into the keyring
+akash keys add my-akash-account --recover --keyring-backend file --home ~/.akash
+
+# 4. When prompted, paste your BIP39 mnemonic (12 or 24 words)
+# 5. Set a secure keyring password when prompted - you'll need this for CI/CD
+
+# 6. Verify your account was created
+akash keys list --keyring-backend file --home ~/.akash
+
+# 7. Save your account address (you'll need it as AKASH_ACCOUNT_ADDRESS secret)
+akash keys show my-akash-account --keyring-backend file --home ~/.akash -a
+```
+
+**Creating GitHub Secrets from Akash Keyring**:
+
+```bash
+# 1. Create the base64-encoded keyring backup
+cd ~/.akash/keyring-file
+tar czf ../keyring-backup.tar.gz .
+cd ..
+
+# 2. Encode as base64
+cat keyring-backup.tar.gz | base64 > keyring-base64.txt
+
+# 3. Copy the contents
+cat keyring-base64.txt
+
+# 4. In GitHub: Settings → Secrets and variables → Actions
+#    Add secret: AKASH_WALLET_KEY = [paste contents from keyring-base64.txt]
+
+# 5. Add other required Akash secrets:
+#    - AKASH_KEY_PASSWORD = [the password you set in step 5 above]
+#    - AKASH_ACCOUNT_ADDRESS = [output from step 7 above, starts with "akash1..."]
+#    - AKASH_NODE = "https://rpc.akash.network:443"
+#    - AKASH_CHAIN_ID = "akash"
+```
+
+**Funding Your Akash Account**:
+
+Before deploying, you need AKT tokens to pay for compute resources:
+
+```bash
+# 1. Get your account address
+akash keys show my-akash-account --keyring-backend file --home ~/.akash -a
+
+# 2. Transfer AKT tokens to this address from an exchange or wallet
+#    Minimum recommended: 5 AKT for first deployment
+
+# 3. Check your balance
+akash query bank balances $(akash keys show my-akash-account -a --keyring-backend file --home ~/.akash) \
+  --node https://rpc.akash.network:443
+```
+
+**After First Deployment** (Optional but Recommended):
+
+After your first deployment is live, store the deployment sequence number for automated updates:
+
+```bash
+# 1. List your active deployments
+akash query deployment list --owner $(akash keys show my-akash-account -a --keyring-backend file --home ~/.akash) \
+  --node https://rpc.akash.network:443
+
+# 2. Copy the DSEQ value from the output
+# 3. In GitHub: Add secret AKASH_DEPLOYMENT_DSEQ = [your DSEQ value]
+# 4. Future pushes will update the existing deployment instead of creating new ones
+```
+
+### Workflow 3: Create 303 Token on Pump.fun (`create-token.yml`)
+
+**Trigger**: Manual dispatch only (via GitHub Actions UI)
+
+**Secrets Required**:
+
+| Secret Name | Description | Setup Instructions |
+|---|---|---|
+| `SOLANA_PRIVATE_KEY` | Base58-encoded Solana wallet private key | Export from wallet (Phantom, Solflare, etc.) |
+| `HELIUS_API_KEY` | API key for Helius RPC endpoint | Sign up at [helius.dev](https://helius.dev) |
+| `SHYFT_API_KEY` | API key for Shyft (optional, for enhanced metadata) | Sign up at [shyft.to](https://shyft.to) |
+
+**Setting up Solana Private Key**:
+
+```bash
+# Using Solana CLI
+solana config get
+# Then export the keypair from: ~/.config/solana/id.json
+```
+
+Or for Phantom/Solflare wallets:
+1. Export your private key from your wallet settings
+2. Ensure it's in Base58 format
+3. Add to GitHub Secrets as `SOLANA_PRIVATE_KEY`
+
+⚠️ **Security Note**: Never commit private keys to your repository. Always use GitHub Secrets.
+
 ## Project Structure
 
 ```

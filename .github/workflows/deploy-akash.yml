@@ -109,12 +109,11 @@ jobs:
           AKASH_CHAIN_ID: ${{ secrets.AKASH_CHAIN_ID }}
           AKASH_KEYRING_BACKEND: file
           AKASH_FROM: ${{ secrets.AKASH_ACCOUNT_ADDRESS }}
-          AKASH_KEY_PASSWORD: ${{ secrets.AKASH_KEY_PASSWORD }}
         run: |
           # Check if certificate exists, create if not
-          if ! akash query cert list --owner $AKASH_FROM --state valid -o json | jq -e '.certificates | length > 0' > /dev/null 2>&1; then
+          if ! echo "${{ secrets.AKASH_KEY_PASSWORD }}" | akash query cert list --owner $AKASH_FROM --state valid -o json 2>/dev/null | jq -e '.certificates | length > 0' > /dev/null 2>&1; then
             echo "Creating new certificate..."
-            akash tx cert create client --from $AKASH_FROM --yes
+            echo "${{ secrets.AKASH_KEY_PASSWORD }}" | akash tx cert create client --from $AKASH_FROM --yes
           else
             echo "Valid certificate exists"
           fi
@@ -126,7 +125,6 @@ jobs:
           AKASH_CHAIN_ID: ${{ secrets.AKASH_CHAIN_ID }}
           AKASH_KEYRING_BACKEND: file
           AKASH_FROM: ${{ secrets.AKASH_ACCOUNT_ADDRESS }}
-          AKASH_KEY_PASSWORD: ${{ secrets.AKASH_KEY_PASSWORD }}
           AKASH_GAS: auto
           AKASH_GAS_ADJUSTMENT: 1.5
           AKASH_GAS_PRICES: 0.025uakt
@@ -137,14 +135,14 @@ jobs:
 
           if [ -n "$DSEQ" ] && [ "${{ github.event.inputs.action }}" = "update" ]; then
             echo "Updating existing deployment $DSEQ..."
-            akash tx deployment update deploy-final.yaml \
+            echo "${{ secrets.AKASH_KEY_PASSWORD }}" | akash tx deployment update deploy-final.yaml \
               --dseq $DSEQ \
               --from $AKASH_FROM \
               --yes
           else
             echo "Creating new deployment..."
             # Create deployment and capture the DSEQ
-            RESULT=$(akash tx deployment create deploy-final.yaml \
+            RESULT=$(echo "${{ secrets.AKASH_KEY_PASSWORD }}" | akash tx deployment create deploy-final.yaml \
               --from $AKASH_FROM \
               --yes \
               -o json)
@@ -165,7 +163,6 @@ jobs:
           AKASH_CHAIN_ID: ${{ secrets.AKASH_CHAIN_ID }}
           AKASH_KEYRING_BACKEND: file
           AKASH_FROM: ${{ secrets.AKASH_ACCOUNT_ADDRESS }}
-          AKASH_KEY_PASSWORD: ${{ secrets.AKASH_KEY_PASSWORD }}
           AKASH_GAS: auto
           AKASH_GAS_ADJUSTMENT: 1.5
           AKASH_GAS_PRICES: 0.025uakt
@@ -173,7 +170,7 @@ jobs:
           DSEQ="${{ secrets.AKASH_DEPLOYMENT_DSEQ }}"
           if [ -n "$DSEQ" ]; then
             echo "Closing deployment $DSEQ..."
-            akash tx deployment close --dseq $DSEQ --from $AKASH_FROM --yes
+            echo "${{ secrets.AKASH_KEY_PASSWORD }}" | akash tx deployment close --dseq $DSEQ --from $AKASH_FROM --yes
           else
             echo "No DSEQ provided, nothing to close"
           fi
