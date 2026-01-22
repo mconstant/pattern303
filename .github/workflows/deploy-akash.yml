@@ -154,6 +154,7 @@ jobs:
             yes "$AKASH_KEY_PASSWORD" | provider-services tx deployment update deploy-final.yaml \
               --dseq $DSEQ \
               --from "$KEY_NAME" \
+              --auth-pem "" \
               -y
             
             # Send updated manifest
@@ -162,12 +163,14 @@ jobs:
             yes "$AKASH_KEY_PASSWORD" | provider-services send-manifest deploy-final.yaml \
               --dseq $DSEQ \
               --provider $PROVIDER \
-              --from "$KEY_NAME"
+              --from "$KEY_NAME" \
+              --auth-pem ""
             echo "✓ Deployment $DSEQ updated"
           else
             echo "Creating new deployment..."
             RESULT=$(yes "$AKASH_KEY_PASSWORD" | provider-services tx deployment create deploy-final.yaml \
               --from "$KEY_NAME" \
+              --auth-pem "" \
               -y \
               --output json)
             
@@ -231,6 +234,7 @@ jobs:
               --dseq $DSEQ \
               --provider $PROVIDER \
               --from "$KEY_NAME" \
+              --auth-pem "" \
               -y
 
             sleep 10
@@ -240,14 +244,16 @@ jobs:
             yes "$AKASH_KEY_PASSWORD" | provider-services send-manifest deploy-final.yaml \
               --dseq $DSEQ \
               --provider $PROVIDER \
-              --from "$KEY_NAME"
+              --from "$KEY_NAME" \
+              --auth-pem ""
 
             # Get service status
             sleep 5
             SERVICE_STATUS=$(yes "$AKASH_KEY_PASSWORD" | provider-services lease-status \
               --dseq $DSEQ \
               --provider $PROVIDER \
-              --from "$KEY_NAME" 2>/dev/null || echo "{}")
+              --from "$KEY_NAME" \
+              --auth-pem "" 2>/dev/null || echo "{}")
 
             SERVICE_URL=$(echo "$SERVICE_STATUS" | jq -r '.services.web.uris[0] // empty')
             if [ -n "$SERVICE_URL" ]; then
@@ -275,6 +281,7 @@ jobs:
             yes "$AKASH_KEY_PASSWORD" | provider-services tx deployment close \
               --dseq $DSEQ \
               --from "$KEY_NAME" \
+              --auth-pem "" \
               -y
             echo "✓ Deployment closed"
           else
