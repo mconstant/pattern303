@@ -117,18 +117,35 @@ jobs:
           envsubst < deploy.yaml > deploy-final.yaml
           cat deploy-final.yaml
 
-      - name: Verify wallet access
+      - name: Setup certificates
         env:
           AKASH_NODE: ${{ secrets.AKASH_NODE }}
           AKASH_CHAIN_ID: ${{ secrets.AKASH_CHAIN_ID }}
           AKASH_KEYRING_BACKEND: file
           AKASH_FROM: ${{ secrets.AKASH_ACCOUNT_ADDRESS }}
+          AKASH_KEY_PASSWORD: ${{ secrets.AKASH_KEY_PASSWORD }}
+          AKASH_GAS: auto
+          AKASH_GAS_ADJUSTMENT: 1.25
+          AKASH_GAS_PRICES: 0.025uakt
         run: |
           # Check balance (no password needed for queries)
           echo "Checking account balance..."
           provider-services query bank balances --node $AKASH_NODE $AKASH_FROM
           
-          echo "✓ Wallet configured - using JWT authentication (no certificates needed)"
+          # Generate and publish certificate
+          echo "Generating client certificate..."
+          yes "$AKASH_KEY_PASSWORD" | provider-services tx cert generate client \
+            --from "$KEY_NAME" \
+            --overwrite \
+            -y
+          
+          echo "Publishing certificate to blockchain..."
+          yes "$AKASH_KEY_PASSWORD" | provider-services tx cert publish client \
+            --from "$KEY_NAME" \
+            -y
+          
+          sleep 5
+          echo "✓ Certificate created and published"
 
       - name: Deploy to Akash
         if: github.event.inputs.action != 'close'
@@ -154,7 +171,6 @@ jobs:
             yes "$AKASH_KEY_PASSWORD" | provider-services tx deployment update deploy-final.yaml \
               --dseq $DSEQ \
               --from "$KEY_NAME" \
-              --auth-pem "" \
               -y
             
             # Send updated manifest
@@ -163,14 +179,12 @@ jobs:
             yes "$AKASH_KEY_PASSWORD" | provider-services send-manifest deploy-final.yaml \
               --dseq $DSEQ \
               --provider $PROVIDER \
-              --from "$KEY_NAME" \
-              --auth-pem ""
+              --from "$KEY_NAME"
             echo "✓ Deployment $DSEQ updated"
           else
             echo "Creating new deployment..."
             RESULT=$(yes "$AKASH_KEY_PASSWORD" | provider-services tx deployment create deploy-final.yaml \
               --from "$KEY_NAME" \
-              --auth-pem "" \
               -y \
               --output json)
             
@@ -234,7 +248,6 @@ jobs:
               --dseq $DSEQ \
               --provider $PROVIDER \
               --from "$KEY_NAME" \
-              --auth-pem "" \
               -y
 
             sleep 10
@@ -244,16 +257,14 @@ jobs:
             yes "$AKASH_KEY_PASSWORD" | provider-services send-manifest deploy-final.yaml \
               --dseq $DSEQ \
               --provider $PROVIDER \
-              --from "$KEY_NAME" \
-              --auth-pem ""
+              --from "$KEY_NAME"
 
             # Get service status
             sleep 5
             SERVICE_STATUS=$(yes "$AKASH_KEY_PASSWORD" | provider-services lease-status \
               --dseq $DSEQ \
               --provider $PROVIDER \
-              --from "$KEY_NAME" \
-              --auth-pem "" 2>/dev/null || echo "{}")
+              --from "$KEY_NAME" 2>/dev/null || echo "{}")
 
             SERVICE_URL=$(echo "$SERVICE_STATUS" | jq -r '.services.web.uris[0] // empty')
             if [ -n "$SERVICE_URL" ]; then
@@ -281,7 +292,6 @@ jobs:
             yes "$AKASH_KEY_PASSWORD" | provider-services tx deployment close \
               --dseq $DSEQ \
               --from "$KEY_NAME" \
-              --auth-pem "" \
               -y
             echo "✓ Deployment closed"
           else
