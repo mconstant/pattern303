@@ -169,7 +169,7 @@ jobs:
           GITHUB_REPO: ${{ github.event.repository.name }}
           GITHUB_ENVIRONMENT: ${{ needs.set-environment.outputs.environment }}
           COLLECTION_ADDRESS: ${{ secrets.VITE_COLLECTION_ADDRESS }}
-          SOLANA_RPC_URL: ${{ needs.set-environment.outputs.solana_network == 'mainnet-beta' && 'https://mainnet.helius-rpc.com/?api-key=' || 'https://devnet.helius-rpc.com/?api-key=' }}${{ secrets.VITE_HELIUS_API_KEY }}
+          SOLANA_RPC_URL: ${{ needs.set-environment.outputs.solana_network == 'mainnet-beta' && 'https://helius.rpc.mainnet.solana.com/?api-key=' || 'https://helius.rpc.devnet.solana.com/?api-key=' }}${{ secrets.VITE_HELIUS_API_KEY }}
           VERIFICATION_WALLET_PKEY: ${{ secrets.VERIFICATION_WALLET_PKEY }}   
         run: |
           # Use short SHA (7 chars) to match Docker tag
