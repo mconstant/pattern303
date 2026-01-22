@@ -85,14 +85,22 @@ jobs:
       - name: Setup Akash wallet
         env:
           AKASH_KEYRING_BACKEND: file
-          AKASH_KEY_PASSWORD: ${{ secrets.AKASH_KEY_PASSWORD }}
         run: |
           # Create keyring directory structure
           mkdir -p ~/.akash/keyring-file
           # Decode and extract the keyring tar archive
           echo "${{ secrets.AKASH_WALLET_KEY }}" | base64 -d | tar -xzf - -C ~/.akash/keyring-file
           # Verify keyring setup
+          echo "=== Keyring files extracted ==="
           ls -la ~/.akash/keyring-file/
+          
+          # List keys to see what key names are available (this doesn't need password)
+          echo "=== Available keys in keyring ==="
+          ls -la ~/.akash/keyring-file/*.info 2>/dev/null || echo "No .info files found"
+          
+          # Try to list keys (may show key names)
+          echo "=== Attempting to list keys ==="
+          akash keys list --keyring-backend file --home ~/.akash 2>&1 || echo "Keys list failed (expected if password required)"
 
       - name: Prepare SDL file
         env:
@@ -109,13 +117,28 @@ jobs:
           AKASH_CHAIN_ID: ${{ secrets.AKASH_CHAIN_ID }}
           AKASH_KEYRING_BACKEND: file
           AKASH_FROM: ${{ secrets.AKASH_ACCOUNT_ADDRESS }}
+          AKASH_KEY_PASSWORD: ${{ secrets.AKASH_KEY_PASSWORD }}
         run: |
+          # Debug: Show password length (not the password itself)
+          echo "Password length: ${#AKASH_KEY_PASSWORD}"
+          
+          # Debug: Find the actual key name in the keyring
+          echo "=== Looking for key names ==="
+          KEY_NAME=$(ls ~/.akash/keyring-file/*.info 2>/dev/null | head -1 | xargs basename 2>/dev/null | sed 's/.info$//' || echo "")
+          echo "Found key file prefix: $KEY_NAME"
+          
+          # If we found a key name, use it; otherwise fall back to my-akash-account
+          if [ -z "$KEY_NAME" ]; then
+            KEY_NAME="my-akash-account"
+          fi
+          echo "Using key name: $KEY_NAME"
+          
           # Generate certificate locally
           echo "Generating certificate..."
-          echo -n "${{ secrets.AKASH_KEY_PASSWORD }}" | akash tx cert generate client \
+          echo "$AKASH_KEY_PASSWORD" | akash tx cert generate client \
             --keyring-backend file \
             --home ~/.akash \
-            --from my-akash-account \
+            --from "$KEY_NAME" \
             --node $AKASH_NODE \
             --chain-id $AKASH_CHAIN_ID \
             --overwrite \
@@ -123,10 +146,10 @@ jobs:
           
           # Publish certificate on-chain
           echo "Publishing certificate on-chain..."
-          echo -n "${{ secrets.AKASH_KEY_PASSWORD }}" | akash tx cert publish client \
+          echo "$AKASH_KEY_PASSWORD" | akash tx cert publish client \
             --keyring-backend file \
             --home ~/.akash \
-            --from my-akash-account \
+            --from "$KEY_NAME" \
             --node $AKASH_NODE \
             --chain-id $AKASH_CHAIN_ID \
             --yes
@@ -136,7 +159,7 @@ jobs:
           
           # Verify certificate was published
           echo "Verifying certificate..."
-          if echo -n "${{ secrets.AKASH_KEY_PASSWORD }}" | akash query cert list --owner $AKASH_FROM -o json 2>/dev/null | jq -e '.certificates | length > 0' > /dev/null 2>&1; then
+          if echo "$AKASH_KEY_PASSWORD" | akash query cert list --owner $AKASH_FROM -o json 2>/dev/null | jq -e '.certificates | length > 0' > /dev/null 2>&1; then
             echo "✓ Certificate created and published successfully"
           else
             echo "⚠ Warning: Certificate may not be confirmed yet, but proceeding with deployment"
@@ -149,31 +172,36 @@ jobs:
           AKASH_CHAIN_ID: ${{ secrets.AKASH_CHAIN_ID }}
           AKASH_KEYRING_BACKEND: file
           AKASH_FROM: ${{ secrets.AKASH_ACCOUNT_ADDRESS }}
+          AKASH_KEY_PASSWORD: ${{ secrets.AKASH_KEY_PASSWORD }}
           AKASH_GAS: auto
           AKASH_GAS_ADJUSTMENT: 1.5
           AKASH_GAS_PRICES: 0.025uakt
           AKASH_BROADCAST_MODE: sync
         run: |
+          # Find the actual key name in the keyring
+          KEY_NAME=$(ls ~/.akash/keyring-file/*.info 2>/dev/null | head -1 | xargs basename 2>/dev/null | sed 's/.info$//' || echo "my-akash-account")
+          echo "Using key name: $KEY_NAME"
+          
           # Check if we have an existing deployment
           DSEQ="${{ secrets.AKASH_DEPLOYMENT_DSEQ }}"
 
           if [ -n "$DSEQ" ] && [ "${{ github.event.inputs.action }}" = "update" ]; then
             echo "Updating existing deployment $DSEQ..."
-            echo -n "${{ secrets.AKASH_KEY_PASSWORD }}" | akash tx deployment update deploy-final.yaml \
+            echo "$AKASH_KEY_PASSWORD" | akash tx deployment update deploy-final.yaml \
               --dseq $DSEQ \
               --keyring-backend file \
               --home ~/.akash \
-              --from my-akash-account \
+              --from "$KEY_NAME" \
               --node $AKASH_NODE \
               --chain-id $AKASH_CHAIN_ID \
               --yes
           else
             echo "Creating new deployment..."
             # Create deployment and capture the DSEQ
-            RESULT=$(echo -n "${{ secrets.AKASH_KEY_PASSWORD }}" | akash tx deployment create deploy-final.yaml \
+            RESULT=$(echo "$AKASH_KEY_PASSWORD" | akash tx deployment create deploy-final.yaml \
               --keyring-backend file \
               --home ~/.akash \
-              --from my-akash-account \
+              --from "$KEY_NAME" \
               --node $AKASH_NODE \
               --chain-id $AKASH_CHAIN_ID \
               --yes \
@@ -195,18 +223,22 @@ jobs:
           AKASH_CHAIN_ID: ${{ secrets.AKASH_CHAIN_ID }}
           AKASH_KEYRING_BACKEND: file
           AKASH_FROM: ${{ secrets.AKASH_ACCOUNT_ADDRESS }}
+          AKASH_KEY_PASSWORD: ${{ secrets.AKASH_KEY_PASSWORD }}
           AKASH_GAS: auto
           AKASH_GAS_ADJUSTMENT: 1.5
           AKASH_GAS_PRICES: 0.025uakt
         run: |
+          # Find the actual key name in the keyring
+          KEY_NAME=$(ls ~/.akash/keyring-file/*.info 2>/dev/null | head -1 | xargs basename 2>/dev/null | sed 's/.info$//' || echo "my-akash-account")
+          
           DSEQ="${{ secrets.AKASH_DEPLOYMENT_DSEQ }}"
           if [ -n "$DSEQ" ]; then
             echo "Closing deployment $DSEQ..."
-            printf '%s\n' "${{ secrets.AKASH_KEY_PASSWORD }}" | akash tx deployment close \
+            echo "$AKASH_KEY_PASSWORD" | akash tx deployment close \
               --dseq $DSEQ \
               --keyring-backend file \
               --home ~/.akash \
-              --from my-akash-account \
+              --from "$KEY_NAME" \
               --node $AKASH_NODE \
               --chain-id $AKASH_CHAIN_ID \
               --yes
