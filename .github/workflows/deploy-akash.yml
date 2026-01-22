@@ -127,9 +127,6 @@ jobs:
           AKASH_GAS_ADJUSTMENT: 1.5
           AKASH_GAS_PRICES: 0.025uakt
         run: |
-          # Debug: Show password length (not the password itself)
-          echo "Password length: ${#AKASH_KEY_PASSWORD}"
-          
           # Debug: Find the actual key name in the keyring
           echo "=== Looking for key names ==="
           KEY_NAME=$(ls ~/.akash/keyring-file/*.info 2>/dev/null | head -1 | xargs basename 2>/dev/null | sed 's/.info$//' || echo "")
