@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useOwnedPatterns, usePatternsByOwner } from '../hooks/usePatternNFTs';
 import { useNomDeGuerre } from '../hooks/useNomDeGuerre';
+import { useToken303 } from '../hooks/useToken303';
 import { PatternGrid } from './PatternCard';
 import { AsciiCamera, AsciiAvatar, AsciiPresetPicker, encodeAsciiArt, decodeAsciiArt } from './AsciiCamera';
 import { PatternNFT } from '../lib/patternNFT';
@@ -45,8 +46,17 @@ export function ProfilePage({ onLoadPattern, viewingAddress, onBackToOwnProfile 
     validateUsername,
     isUsernameTaken,
     mintFee,
-    changeFee,
+    mintFeeDiscounted,
+    changeFeeFull,
   } = useNomDeGuerre('mainnet-beta');
+
+  const {
+    isHolder,
+    balance,
+    threshold,
+    tokenSymbol,
+    ndgChangeFee,
+  } = useToken303('mainnet-beta');
 
   const [avatarMode, setAvatarMode] = useState<AvatarMode>('none');
   const [avatar, setAvatar] = useState<string | null>(null);
@@ -131,9 +141,9 @@ export function ProfilePage({ onLoadPattern, viewingAddress, onBackToOwnProfile 
     if (!ndgInput || !ndgValidation?.valid) return;
 
     if (hasNomDeGuerre) {
-      await changeNdg(ndgInput, false); // TODO: Check if 303 holder
+      await changeNdg(ndgInput, isHolder);
     } else {
-      await mintNdg(ndgInput);
+      await mintNdg(ndgInput, isHolder);
     }
 
     setShowNdgForm(false);
@@ -262,6 +272,25 @@ export function ProfilePage({ onLoadPattern, viewingAddress, onBackToOwnProfile 
               {profileAddress}
             </p>
 
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
+              <span className={`px-2 py-1 rounded ${isHolder ? 'bg-green-900/40 border border-green-500 text-green-200' : 'bg-gray-800 border border-gray-700 text-gray-300'}`}>
+                {isHolder
+                  ? `$${tokenSymbol} perks active • ${balance.toFixed(2)} held`
+                  : `Hold ${threshold}+ $${tokenSymbol} for perks`}
+              </span>
+              <span className="text-gray-500">Free pattern mints • Discounted nom de guerre</span>
+              {!isHolder && (
+                <a
+                  className="text-amber-400 hover:text-amber-300 font-mono"
+                  href="https://pump.fun/search?query=Pattern%20303"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Buy $303 on pump.fun ↗
+                </a>
+              )}
+            </div>
+
             <div className="mt-4 flex gap-4 text-sm">
               <div className="text-center">
                 <div className="text-2xl font-bold text-synth-accent">{patterns.length}</div>
@@ -314,12 +343,18 @@ export function ProfilePage({ onLoadPattern, viewingAddress, onBackToOwnProfile 
                 ) : hasNomDeGuerre ? (
                   <span className="flex flex-col items-center text-xs">
                     <span>Change</span>
-                    <span className="opacity-70">{changeFee} SOL</span>
+                    <span className="opacity-70">
+                      {isHolder && <span className="line-through mr-1 text-gray-400">{changeFeeFull} SOL</span>}
+                      {ndgChangeFee} SOL
+                    </span>
                   </span>
                 ) : (
                   <span className="flex flex-col items-center text-xs">
                     <span>Claim</span>
-                    <span className="opacity-70">{mintFee} SOL</span>
+                    <span className="opacity-70">
+                      {isHolder && <span className="line-through mr-1 text-gray-400">{mintFee} SOL</span>}
+                      {isHolder ? mintFeeDiscounted : mintFee} SOL
+                    </span>
                   </span>
                 )}
               </button>

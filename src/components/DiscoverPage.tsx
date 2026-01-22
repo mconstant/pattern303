@@ -79,6 +79,23 @@ export function DiscoverPage({ onLoadPattern, onViewProfile }: DiscoverPageProps
         </div>
       </div>
 
+      {/* Token holder perks */}
+      <div className="bg-synth-panel border border-gray-600 rounded-lg p-3 text-sm text-gray-200">
+        <div className="font-mono font-bold text-amber-400 mb-1">$303 holder perks</div>
+        <ul className="list-disc list-inside space-y-1 text-gray-300">
+          <li>Hold <span className="font-bold">≥ 303 $303</span> to mint patterns <span className="font-bold">for free</span>.</li>
+          <li>Nom de guerre mints are discounted for $303 holders.</li>
+        </ul>
+        <a
+          className="inline-flex items-center gap-1 mt-2 text-amber-400 hover:text-amber-300 font-mono text-xs"
+          href="https://pump.fun/search?query=Pattern%20303"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Buy $303 on pump.fun ↗
+        </a>
+      </div>
+
       {/* Tab content */}
       {activeTab === 'patterns' ? (
         <>

@@ -10,6 +10,7 @@ import {
   isUsernameTaken,
   getUserNdg,
   NDG_MINT_FEE,
+  NDG_MINT_FEE_DISCOUNTED,
   NDG_CHANGE_FEE,
   NDG_CHANGE_FEE_REGULAR,
 } from '../lib/nomDeGuerre';
@@ -54,7 +55,10 @@ export function useNomDeGuerre(network: NetworkType = 'mainnet-beta') {
   }, [refresh]);
 
   // Mint a new nom de guerre
-  const mint = useCallback(async (username: string): Promise<NomDeGuerre | null> => {
+  const mint = useCallback(async (
+    username: string,
+    is303Holder: boolean = false
+  ): Promise<NomDeGuerre | null> => {
     if (!wallet.connected) {
       setError('Please connect your wallet first');
       return null;
@@ -64,7 +68,7 @@ export function useNomDeGuerre(network: NetworkType = 'mainnet-beta') {
     setError(null);
 
     try {
-      const ndg = await mintNomDeGuerre(wallet, username, network);
+      const ndg = await mintNomDeGuerre(wallet, username, network, is303Holder);
       setNomDeGuerre(ndg);
       return ndg;
     } catch (e) {
@@ -120,7 +124,9 @@ export function useNomDeGuerre(network: NetworkType = 'mainnet-beta') {
     validateUsername: isValidUsername,
     isUsernameTaken,
     mintFee: NDG_MINT_FEE,
+    mintFeeDiscounted: NDG_MINT_FEE_DISCOUNTED,
     changeFee: NDG_CHANGE_FEE,
+    changeFeeDiscounted: NDG_CHANGE_FEE,
     changeFeeFull: NDG_CHANGE_FEE_REGULAR,
   };
 }

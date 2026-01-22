@@ -23,7 +23,8 @@ import { NetworkType } from '../types/pattern';
 import { SOLANA_NETWORKS } from './constants';
 
 // Nom de Guerre costs
-export const NDG_MINT_FEE = 0.0303; // SOL to mint a new nom de guerre
+export const NDG_MINT_FEE = 0.0303; // SOL to mint a new nom de guerre (regular users)
+export const NDG_MINT_FEE_DISCOUNTED = 0.0108; // Discounted mint for 303 token holders
 export const NDG_CHANGE_FEE = 0.0108; // SOL to change nom de guerre (for 303 token holders)
 export const NDG_CHANGE_FEE_REGULAR = 0.0303; // Regular users pay full price to change
 
@@ -148,7 +149,8 @@ async function payFee(
 export async function mintNomDeGuerre(
   wallet: WalletContextState,
   username: string,
-  network: NetworkType
+  network: NetworkType,
+  is303Holder: boolean = false
 ): Promise<NomDeGuerre> {
   // Validate
   const validation = isValidUsername(username);
@@ -167,8 +169,9 @@ export async function mintNomDeGuerre(
   const endpoint = SOLANA_NETWORKS[network];
   const connection = new Connection(endpoint, 'confirmed');
 
-  // Pay minting fee
-  await payFee(wallet, connection, NDG_MINT_FEE);
+  // Pay minting fee (discounted for 303 holders)
+  const mintFee = is303Holder ? NDG_MINT_FEE_DISCOUNTED : NDG_MINT_FEE;
+  await payFee(wallet, connection, mintFee);
 
   // Create Umi instance
   const umi = createUmi(endpoint)
