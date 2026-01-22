@@ -289,7 +289,7 @@ export function AboutPage() {
                     rel="noreferrer"
                     className="text-amber-400 hover:text-amber-300 text-sm font-mono"
                   >
-                    Watch: "303 Magic" on YouTube ↗
+                    Watch: "A Short History of the 303 in 12 songs 🙂 How the 303 failed successfully - our fav TB-303 patterns" on YouTube ↗
                   </a>
                 </div>
               </div>
@@ -298,7 +298,7 @@ export function AboutPage() {
                 <div>
                   <div className="font-bold text-amber-200">Digiphex</div>
                   <p className="text-gray-300 text-sm mb-2">
-                    An incredible artist pushing the boundaries of 303 synthesis. Deep, hypnotic, and totally inspiring. Check out this video:
+                    An music tech educator. He can pull apart Boards of Canada and Aphex Twin and show you how to do them as well. Deep, hypnotic, and totally inspiring. Check out this video:
                   </p>
                   <a
                     href="https://www.youtube.com/watch?v=Yg9Z0BvxD0s"
