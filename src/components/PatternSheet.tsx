@@ -7,7 +7,7 @@ import { getMintFee, getTreasuryWallet } from '../lib/metaplex';
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', 'C'];
 const BANKS: PatternBank[] = ['I', 'II', 'III', 'IV'];
 const SECTIONS: PatternSection[] = ['A', 'B'];
-const PATTERN_NUMBERS: PatternNumber[] = [1, 2, 3, 4, 5, 6, 7, 8];
+const PATTERN_NUMBERS: PatternNumber[] = [1, 2, 3, 4, 5, 6, 7];
 
 // Compact engineering dial for synth parameters
 // Standard pot rotation: 7 o'clock (min) to 5 o'clock (max), ~300° sweep
