@@ -185,7 +185,7 @@ jobs:
           AKASH_GAS_ADJUSTMENT: 1.5
           AKASH_GAS_PRICES: 0.025uakt
           AKASH_BROADCAST_MODE: block
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
           # Preferred providers (cheapest will be selected)
           PREFERRED_PROVIDERS: "akash18ga02jzaq8cw52anyhzkwta5wygufgu6zsz6xc,akash15ksejj7g4su7ljufsg0a8eglvkje94z8qsh68a,akash175llqyjvxfle9qwt740vm46772dzaznpzgm576"
         run: |
