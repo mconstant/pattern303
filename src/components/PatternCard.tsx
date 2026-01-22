@@ -21,7 +21,7 @@ export function PatternCard({
   onBurn,
   showOwner = false,
   canBurn = false,
-  network = 'devnet',
+  network = 'mainnet-beta',
 }: PatternCardProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isBurning, setIsBurning] = useState(false);
@@ -198,7 +198,7 @@ export function PatternGrid({
   onBurn,
   showOwner = false,
   canBurn = false,
-  network = 'devnet',
+  network = 'mainnet-beta',
   emptyMessage = 'No patterns found',
 }: {
   patterns: PatternNFT[];

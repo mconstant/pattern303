@@ -282,7 +282,7 @@ export async function fetchUserNomDeGuerre(
   try {
     const dasEndpoint = network === 'devnet'
       ? 'https://devnet.helius-rpc.com/?api-key=15319bf4-5b40-4958-ac8d-6313aa55eb92'
-      : 'https://mainnet.helius-rpc.com/?api-key=15319bf4-5b40-4958-ac8d-6313aa55eb92';
+      : 'https://mainnet.helius-rpc.com/?api-key=9193208f-feae-4b68-9be6-8314a1443c45';
 
     const response = await fetch(dasEndpoint, {
       method: 'POST',

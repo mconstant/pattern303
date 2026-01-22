@@ -3,7 +3,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { getCachedDisplayName, formatWalletAddress } from '../lib/solanaNames';
 import { NetworkType } from '../types/pattern';
 
-export function useSolanaName(network: NetworkType = 'devnet') {
+export function useSolanaName(network: NetworkType = 'mainnet-beta') {
   const { publicKey, connected } = useWallet();
   const [displayName, setDisplayName] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);

@@ -11,7 +11,7 @@ export interface ResolvedName {
 // Resolve wallet address to domain name using various services
 export async function resolveWalletToDomain(
   walletAddress: string,
-  network: NetworkType = 'devnet'
+  network: NetworkType = 'mainnet-beta'
 ): Promise<ResolvedName | null> {
   try {
     // Try Bonfida SNS first (.sol domains)
@@ -106,7 +106,7 @@ export function formatWalletAddress(address: string): string {
 // Get display name: domain if available, otherwise short wallet address
 export async function getDisplayName(
   walletAddress: string,
-  network: NetworkType = 'devnet'
+  network: NetworkType = 'mainnet-beta'
 ): Promise<string> {
   const resolved = await resolveWalletToDomain(walletAddress, network);
   if (resolved) {
@@ -124,7 +124,7 @@ export function clearNameCache() {
 
 export async function getCachedDisplayName(
   walletAddress: string,
-  network: NetworkType = 'devnet'
+  network: NetworkType = 'mainnet-beta'
 ): Promise<string> {
   const cacheKey = `${walletAddress}-${network}`;
 

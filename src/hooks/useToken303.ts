@@ -10,7 +10,7 @@ import {
   getNdgChangeFee,
 } from '../lib/token303';
 
-export function useToken303(network: NetworkType = 'devnet') {
+export function useToken303(network: NetworkType = 'mainnet-beta') {
   const { publicKey, connected } = useWallet();
   const [balance, setBalance] = useState<number>(0);
   const [isHolder, setIsHolder] = useState(false);

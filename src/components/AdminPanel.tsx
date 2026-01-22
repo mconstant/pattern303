@@ -35,7 +35,7 @@ export function AdminPanel({ onClose }: AdminPanelProps) {
     setResult(null);
 
     try {
-      const res = await createCollectionNFT(wallet, 'devnet');
+      const res = await createCollectionNFT(wallet, 'mainnet-beta');
       setResult({
         address: res.collectionAddress,
         explorerUrl: res.explorerUrl,
@@ -71,7 +71,7 @@ export function AdminPanel({ onClose }: AdminPanelProps) {
                   <code className="text-xs text-synth-silver break-all">{currentCollection}</code>
                 </div>
                 <a
-                  href={`https://explorer.solana.com/address/${currentCollection}?cluster=devnet`}
+                  href={`https://explorer.solana.com/address/${currentCollection}?cluster=mainnet-beta`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs text-synth-accent hover:underline"
@@ -150,7 +150,7 @@ export function AdminPanel({ onClose }: AdminPanelProps) {
                   <code className="text-xs text-synth-silver break-all">{TOKEN_303_MINT}</code>
                 </div>
                 <a
-                  href={`https://explorer.solana.com/address/${TOKEN_303_MINT}?cluster=devnet`}
+                  href={`https://explorer.solana.com/address/${TOKEN_303_MINT}?cluster=mainnet-beta`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs text-synth-accent hover:underline"

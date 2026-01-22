@@ -12,7 +12,7 @@ interface Props {
   network?: 'devnet' | 'mainnet-beta';
 }
 
-export const WalletContextProvider: FC<Props> = ({ children, network = 'devnet' }) => {
+export const WalletContextProvider: FC<Props> = ({ children, network = 'mainnet-beta' }) => {
   const endpoint = useMemo(() => clusterApiUrl(network), [network]);
 
   const wallets = useMemo(

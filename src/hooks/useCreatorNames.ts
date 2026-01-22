@@ -10,7 +10,7 @@ export interface CreatorNameOption {
   type: 'wallet' | 'sns' | 'nomDeGuerre';
 }
 
-export function useCreatorNames(network: NetworkType = 'devnet') {
+export function useCreatorNames(network: NetworkType = 'mainnet-beta') {
   const { publicKey, connected } = useWallet();
   const [options, setOptions] = useState<CreatorNameOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);

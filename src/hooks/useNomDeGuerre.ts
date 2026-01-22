@@ -14,7 +14,7 @@ import {
   NDG_CHANGE_FEE_REGULAR,
 } from '../lib/nomDeGuerre';
 
-export function useNomDeGuerre(network: NetworkType = 'devnet') {
+export function useNomDeGuerre(network: NetworkType = 'mainnet-beta') {
   const wallet = useWallet();
   const [nomDeGuerre, setNomDeGuerre] = useState<NomDeGuerre | null>(null);
   const [loading, setLoading] = useState(false);

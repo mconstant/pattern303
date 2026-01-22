@@ -16,7 +16,7 @@ interface DiscoverPageProps {
 export function DiscoverPage({ onLoadPattern, onViewProfile }: DiscoverPageProps) {
   const { publicKey } = useWallet();
   const [activeTab, setActiveTab] = useState<DiscoverTab>('patterns');
-  const { patterns, loading, error, refresh } = useDiscoverPatterns('devnet');
+  const { patterns, loading, error, refresh } = useDiscoverPatterns('mainnet-beta');
 
   const walletAddress = publicKey?.toBase58();
 

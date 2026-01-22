@@ -176,7 +176,7 @@ export function PatternSheet({
   isPlaying = false,
   onTogglePlay,
   onStop,
-  network = 'devnet',
+  network = 'mainnet-beta',
 }: PatternSheetProps) {
   const { mint, reset, isMinting, mintResult, error: mintError, canMint } = useMint(pattern, network);
   const { isHolder } = useToken303(network);

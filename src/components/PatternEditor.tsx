@@ -32,7 +32,7 @@ export function PatternEditor({ initialPattern, onPatternChange }: PatternEditor
   } = usePattern();
 
   const { isPlaying, togglePlayback, stop } = useSynth(pattern);
-  const { primaryName } = useCreatorNames('devnet');
+  const { primaryName } = useCreatorNames('mainnet-beta');
   const hasAutoSetCreator = useRef(false);
 
   // Load initial pattern if provided
@@ -73,7 +73,7 @@ export function PatternEditor({ initialPattern, onPatternChange }: PatternEditor
       isPlaying={isPlaying}
       onTogglePlay={togglePlayback}
       onStop={stop}
-      network="devnet"
+      network="mainnet-beta"
     />
   );
 }

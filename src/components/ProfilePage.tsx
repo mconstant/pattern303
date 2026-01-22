@@ -26,8 +26,8 @@ export function ProfilePage({ onLoadPattern, viewingAddress, onBackToOwnProfile 
   const isOwnProfile = !isViewingOther && connected;
 
   // Get patterns - use different hook depending on context
-  const ownPatterns = useOwnedPatterns('devnet');
-  const otherPatterns = usePatternsByOwner(viewingAddress || '', 'devnet');
+  const ownPatterns = useOwnedPatterns('mainnet-beta');
+  const otherPatterns = usePatternsByOwner(viewingAddress || '', 'mainnet-beta');
   const { patterns, loading, error, refresh } = isViewingOther ? otherPatterns : ownPatterns;
 
   // Get creator info for viewing other profiles
@@ -46,7 +46,7 @@ export function ProfilePage({ onLoadPattern, viewingAddress, onBackToOwnProfile 
     isUsernameTaken,
     mintFee,
     changeFee,
-  } = useNomDeGuerre('devnet');
+  } = useNomDeGuerre('mainnet-beta');
 
   const [avatarMode, setAvatarMode] = useState<AvatarMode>('none');
   const [avatar, setAvatar] = useState<string | null>(null);
@@ -381,7 +381,7 @@ export function ProfilePage({ onLoadPattern, viewingAddress, onBackToOwnProfile 
           onSelect={handleSelectPattern}
           onBurn={isOwnProfile ? handleBurnPattern : undefined}
           canBurn={isOwnProfile}
-          network="devnet"
+          network="mainnet-beta"
           emptyMessage={
             isOwnProfile
               ? "You haven't minted any patterns yet. Create a pattern and mint it as an NFT!"
