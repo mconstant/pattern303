@@ -5,6 +5,75 @@ type AboutTab = 'welcome' | 'museum' | 'inspiration';
 export function AboutPage() {
   const [activeTab, setActiveTab] = useState<AboutTab>('welcome');
 
+  const hardwareItems = [
+    {
+      title: 'Behringer TD-3 MO (My Personal Recommendation)',
+      description: 'The TD-3 MO is my daily driver. It captures the essence of the 303 at an incredible price point. Desktop format, solid build, and the sound is absolutely there.',
+      link: 'https://www.amazon.com/Behringer-000-EYF02-00010-TD-3-MO-SR/dp/B09B6SQHXN/ref=sr_1_1?crid=C4F2YKQWTNY4&dib=eyJ2IjoiMSJ9.2ifWKAeFIfJMHpIOEMR6S4ubL0HvtoxMhVheuTyy71kn5E_yl979ApzWBacjbzkpB8eEweXzvlNcAx32AX4vSWivADLpeuI66LRo2VcfEmWJPwnoW7qMNg7zCPU5Cg4uQNPFN0wjweyTB81D-AidlTK8Q7PasjG58bfbby9dfJ5aKhcixUD-Cvj7bdIJ8w6UlpuuCYsZUG0UVm1UdqbQIeH58_BSzdIdXFJrMeCHIsvlhRiglUoq7QGJHv-bg_jzZXNIymH4z5Dw1cFv-Njfoyng7yUoUT8JjrTJaVHSu1A.wDZm62n_iPRt3DCGokyB9aSZxh4Ja1OXqpv8YheZFjY&dib_tag=se&keywords=tb-3-mo+behringer&qid=1769094561&sprefix=tb-3-mo+behringe%2Caps%2C127&sr=8-1',
+      affiliate: true,
+      image: 'https://ws-na.amazon-adsystem.com/widgets/q?_encoding=UTF8&ASIN=B09B6SQHXN&Format=_SL500_&ID=AsinImage&MarketPlace=US&ServiceVersion=20070822&WS=1&tag=',
+      alt: 'Behringer TD-3 MO bassline synthesizer product photo',
+      linkLabel: 'View on Amazon (affiliate link) ↗',
+    },
+    {
+      title: 'Behringer TD-3 (Classic Budget Option)',
+      description: 'The bread and butter 303 clone. Rock solid, iconic orange look, and gets the job done beautifully.',
+      link: 'https://www.amazon.com/Behringer-TD-3-AM-Synthesizer/dp/B0855K2MN2/ref=sr_1_2?crid=2YL6C7WXO7ATL&dib=eyJ2IjoiMSJ9.KM-PV8HweRNxon757IAunQt_GKMmT5HkTUW-vdrvdrsGJx8t7rIywbyTzE5lFmq2Vgen9EzWZ1LU42PbHtPF3BaL_ZMlDU-bRZD7VCHZ1H0Pi1QowZLsD_KV7okWGskb8HC1TseLG9kA7qcWxt3IVrOstQjtEJUM8Dt-y2tyjesotevGak8RneiwsfTOk9-5O8D1twLy3dA0god9aLAHLD6_ns7TxpbkByHeGCJu3zuZA0NhpjDAu5xibFlLtu8xeT6fBhwWn7-A4pNbiCRP14RiKiNpIaitp-Jilu0GlEY.BYO-aXCJ9g266D6Nin8UffLb27SsvdjpVhs8nh4_bpY&dib_tag=se&keywords=tb+303&qid=1769094702&sprefix=tb+303%2Caps%2C198&sr=8-2',
+      affiliate: true,
+      image: 'https://ws-na.amazon-adsystem.com/widgets/q?_encoding=UTF8&ASIN=B0855K2MN2&Format=_SL500_&ID=AsinImage&MarketPlace=US&ServiceVersion=20070822&WS=1&tag=',
+      alt: 'Behringer TD-3 classic bassline synthesizer product photo',
+      linkLabel: 'View on Amazon (affiliate link) ↗',
+    },
+    {
+      title: 'DinSync RE-303 (Boutique Boutique)',
+      description: 'The premium choice. Absolutely gorgeous, hand-crafted, and sounds incredibly close to the original. If you want the real deal feel, this is it.',
+      link: 'https://www.kumptronics.com/shop/electronic-instruments/#cc-m-product-11786939257',
+      affiliate: false,
+      image: 'https://mediadl.musictribe.com/media/PLM/data/images/products/P0D3Q/2000x2000-TD-3-MO-SR.png',
+      alt: 'DinSync RE-303 style boutique silver bassline synth',
+      linkLabel: 'View at Kumptronics ↗',
+    },
+    {
+      title: 'Roland TB-03 (Boutique Official)',
+      description: 'The official Roland re-issue. Compact, highly respected, and authentic to the original design.',
+      link: 'https://www.amazon.com/Roland-TB-03-Bass-Line-Synthesizer/dp/B01M1DS5VV/ref=sr_1_1?crid=3HAWAWBXBF9V0&dib=eyJ2IjoiMSJ9.KM-PV8HweRNxon757IAunWYad86PP7o87cdo5PVAQz-QYtb4rOOYDIjihhA0n-xZnJAXV0Thrpmu3MV7t9kET3K7GrjhBMEMD2huV_K2yrZLgVkY4cV8TDxKHGaCFAl_-VI7kTEZjDAC89i6Sp08W7OstQjtEJUM8Dt-y2tyjes1pYLOZ9kz9Bc2uuNzKQZ_A1m_yAUz8oP2IEW2RzPScjaMgHbuzeMTe1r_X8DrX4cGzb8s-yjrtKI3zv6ekR1crznlQU_wBTi7FK3EdnfgE4WI0-Bm0jyg7F82zxdWSY0.t5dlSpcFRXikk2xd5owNXG9MaOLG1wEA6WdSh64MPMo&dib_tag=se&keywords=tb+303&qid=1769094634&sprefix=tb+303%2Caps%2C140&sr=8-1',
+      affiliate: true,
+      image: 'https://ws-na.amazon-adsystem.com/widgets/q?_encoding=UTF8&ASIN=B01M1DS5VV&Format=_SL500_&ID=AsinImage&MarketPlace=US&ServiceVersion=20070822&WS=1&tag=',
+      alt: 'Roland TB-03 boutique bassline synthesizer product photo',
+      linkLabel: 'View on Amazon (affiliate link) ↗',
+    },
+    {
+      title: 'Erica Synths Acidlab Bassline',
+      description: 'Another solid boutique option with a unique character. Great for experimental acid work.',
+      link: 'https://www.amazon.com/Erica-Synths-Bassline-Desktop-Synthesizer/dp/B08NTPXNNV/ref=sr_1_2?crid=1OZ7H3H24D5YE&dib=eyJ2IjoiMSJ9.aYpgf8O-Kxwnw_VijtFZMN-el_nS0bOUzYDG7FoiEgE.cmmvsC0POtNWPx2awksirFuBfOGEtnsMSgj9sl1rIng&dib_tag=se&keywords=acid+lab+bassline+synth&qid=1769094818&sprefix=acidlab+bassline+synth%2Caps%2C131&sr=8-2',
+      affiliate: true,
+      image: 'https://ws-na.amazon-adsystem.com/widgets/q?_encoding=UTF8&ASIN=B08NTPXNNV&Format=_SL500_&ID=AsinImage&MarketPlace=US&ServiceVersion=20070822&WS=1&tag=',
+      alt: 'Erica Synths Acidlab Bassline desktop synthesizer product photo',
+      linkLabel: 'View on Amazon (affiliate link) ↗',
+    },
+    {
+      title: 'Donner Essential B1',
+      description: 'Affordable entry point with solid sound. Great for beginners exploring the 303 world.',
+      link: 'https://www.amazon.com/Synthesizer-Donner-Essential-B1-Saturation/dp/B0BZ772G4B/ref=sr_1_4?crid=2YL6C7WXO7ATL&dib=eyJ2IjoiMSJ9.KM-PV8HweRNxon757IAunQt_GKMmT5HkTUW-vdrvdrs22Nv1P6_hgAnYuTBBb0c7lojgjHtA6gvBDauLR35wpHHDN1X66BiDO4pI5wrriPXEMYpz54wvoEwNcxQqBHeQ8HC1TseLG9kA7qcWxt3IVrOstQjtEJUM8Dt-y2tyjes1pYLOZ9kz9Bc2uuNzKQZ_haFzitDpDHADtVCmgPbQZz6_ns7TxpbkByHeGCJu3ztSguVpQukGdoGO5Xi8xbj5ue5dKBNExXbKvnRckGn27IRiKiNpIaitp-Jilu0GlEY.L1fcV62wuIjeoE0wPlvmTx40cBRfSJ4nWCxnqZf5lKU&dib_tag=se&keywords=tb+303&qid=1769094865&sprefix=tb+303%2Caps%2C198&sr=8-4',
+      affiliate: true,
+      image: 'https://ws-na.amazon-adsystem.com/widgets/q?_encoding=UTF8&ASIN=B0BZ772G4B&Format=_SL500_&ID=AsinImage&MarketPlace=US&ServiceVersion=20070822&WS=1&tag=',
+      alt: 'Donner Essential B1 bass synthesizer product photo',
+      linkLabel: 'View on Amazon (affiliate link) ↗',
+    },
+  ];
+
+  const resourceItems = [
+    {
+      title: 'Roland TB-303 Pattern Book',
+      description: 'Classic paper pattern sheets for recording your favorite basslines. For when you want that vintage feel.',
+      link: 'https://www.amazon.com/Roland-TB-303-Pattern-book-favorites/dp/B0CH292Z3W/ref=sr_1_6?crid=2YL6C7WXO7ATL&dib=eyJ2IjoiMSJ9.KM-PV8HweRNxon757IAunQt_GKMmT5HkTUW-vdrvdrsGJx8t7rIywbyTzE5lFmq2Vgen9EzWZ1LU42PbHtPF3BaL_ZMlDU-bRZD7VCHZ1H0Pi1QowZLsD_KV7okWGskb8HC1TseLG9kA7qcWxt3IVrOstQjtEJUM8Dt-y2tyjesotevGak8RneiwsfTOk9-5O8D1twLy3dA0god9aLAHLD6_ns7TxpbkByHeGCJu3zuZA0NhpjDAu5xibFlLtu8xeT6fBhwWn7-A4pNbiCRP14RiKiNpIaitp-Jilu0GlEY.BYO-aXCJ9g266D6Nin8UffLb27SsvdjpVhs8nh4_bpY&dib_tag=se&keywords=tb+303&qid=1769094702&sprefix=tb+303%2Caps%2C198&sr=8-6',
+      affiliate: true,
+      image: 'https://ws-na.amazon-adsystem.com/widgets/q?_encoding=UTF8&ASIN=B0CH292Z3W&Format=_SL500_&ID=AsinImage&MarketPlace=US&ServiceVersion=20070822&WS=1&tag=',
+      alt: 'Roland TB-303 pattern book cover',
+      linkLabel: 'View on Amazon (affiliate link) ↗',
+    },
+  ];
+
   return (
     <div className="space-y-8 pb-12">
       {/* Header */}
@@ -66,6 +135,23 @@ export function AboutPage() {
             <h3 className="text-xl font-bold text-amber-300 mt-6">My 303 Journey</h3>
 
             <p className="text-gray-300 leading-relaxed">
+              While I was in engineering school, my roommate opened my eyes to the demoscene. He sat me down with demos by The Black Lotus that had that distinct acid squelch under the visuals, and I was instantly hooked by the idea that code, music, and art could collide like that.
+            </p>
+
+            <p className="text-gray-300 leading-relaxed">
+              From there I dove deep into crews like Fudge, Haujobb, CNCD, Aardbei, 3state, TPOLM, and farbrausch. If you have even a passing interest in this world, spend an evening on{' '}
+              <a
+                href="https://www.pouet.net/"
+                target="_blank"
+                rel="noreferrer"
+                className="text-amber-400 hover:text-amber-300 font-mono"
+              >
+                pouet.net
+              </a>{' '}
+              —it is a treasure trove and I cannot recommend it enough.
+            </p>
+
+            <p className="text-gray-300 leading-relaxed">
               My relationship with the 303 started in the late '90s when I first laid hands on Propellerheads' <span className="font-mono text-amber-200">ReBirth</span> and <span className="font-mono text-amber-200">Reaktor</span>. Those tools opened my eyes to what was possible with a simple synthesizer, a filter, and a sequencer. I was captivated.
             </p>
 
@@ -105,6 +191,23 @@ export function AboutPage() {
             <p className="text-gray-400 text-sm pt-4">
               Whether you're a seasoned 303 enthusiast or just discovering the magic for the first time, there's room for you here. Create, share, and celebrate the 303 with us.
             </p>
+
+            <div className="bg-gray-800/60 border border-amber-700 rounded-lg p-4 space-y-3 mt-4">
+              <div className="flex items-center gap-2">
+                <span className="text-amber-300 font-bold">Pattern 303 Token ($303)</span>
+              </div>
+              <p className="text-gray-300 text-sm">
+                The token exists so seriously interested people can use this place the way it was meant to be used: as a mostly free, super robust store for their patterns. If you're excited about that, grab a little $303 and ride along.
+              </p>
+              <ul className="space-y-1 text-gray-300 text-sm list-disc list-inside">
+                <li>Mint costs flow to a shared treasury wallet that pays for improving and fixing the site.</li>
+                <li>Bugs will happen—this is a passion project with no guarantees—but holding a small amount of $303 (around 300) unlocks useful functionality at a nominal cost.</li>
+                <li>Even if no one else uses this site, at least I will! 😵‍💫</li>
+              </ul>
+              <p className="text-gray-400 text-xs">
+                If you're here because you love 303 patterns, picking up some $303 is a way to keep the lights on and keep building.
+              </p>
+            </div>
           </div>
         </div>
       )}
@@ -124,110 +227,37 @@ export function AboutPage() {
               <h3 className="text-xl font-bold text-amber-300">🎛️ Modern 303 Clones & Homages</h3>
 
               <div className="space-y-3">
-                <div className="bg-gray-800/50 rounded p-4 space-y-2">
-                  <div className="font-bold text-amber-200">Behringer TD-3 MO (My Personal Recommendation)</div>
-                  <p className="text-gray-300 text-sm">
-                    The TD-3 MO is my daily driver. It captures the essence of the 303 at an incredible price point. Desktop format, solid build, and the sound is absolutely there.
-                  </p>
-                  <a
-                    href="https://www.amazon.com/Behringer-000-EYF02-00010-TD-3-MO-SR/dp/B09B6SQHXN/ref=sr_1_1?crid=C4F2YKQWTNY4&dib=eyJ2IjoiMSJ9.2ifWKAeFIfJMHpIOEMR6S4ubL0HvtoxMhVheuTyy71kn5E_yl979ApzWBacjbzkpB8eEweXzvlNcAx32AX4vSWivADLpeuI66LRo2VcfEmWJPwnoW7qMNg7zCPU5Cg4uQNPFN0wjweyTB81D-AidlTK8Q7PasjG58bfbby9dfJ5aKhcixUD-Cvj7bdIJ8w6UlpuuCYsZUG0UVm1UdqbQIeH58_BSzdIdXFJrMeCHIsvlhRiglUoq7QGJHv-bg_jzZXNIymH4z5Dw1cFv-Njfoyng7yUoUT8JjrTJaVHSu1A.wDZm62n_iPRt3DCGokyB9aSZxh4Ja1OXqpv8YheZFjY&dib_tag=se&keywords=tb-3-mo+behringer&qid=1769094561&sprefix=tb-3-mo+behringe%2Caps%2C127&sr=8-1"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-amber-400 hover:text-amber-300 text-sm font-mono"
-                  >
-                    View on Amazon (affiliate link) ↗
-                  </a>
-                  <p className="text-gray-500 text-xs">
-                    📍 Affiliate disclosure: I earn a small commission if you purchase through this link, at no extra cost to you.
-                  </p>
-                </div>
-
-                <div className="bg-gray-800/50 rounded p-4 space-y-2">
-                  <div className="font-bold text-amber-200">Behringer TD-3 (Classic Budget Option)</div>
-                  <p className="text-gray-300 text-sm">
-                    The bread and butter 303 clone. Rock solid, iconic orange look, and gets the job done beautifully.
-                  </p>
-                  <a
-                    href="https://www.amazon.com/Behringer-TD-3-AM-Synthesizer/dp/B0855K2MN2/ref=sr_1_2?crid=2YL6C7WXO7ATL&dib=eyJ2IjoiMSJ9.KM-PV8HweRNxon757IAunQt_GKMmT5HkTUW-vdrvdrsGJx8t7rIywbyTzE5lFmq2Vgen9EzWZ1LU42PbHtPF3BaL_ZMlDU-bRZD7VCHZ1H0Pi1QowZLsD_KV7okWGskb8HC1TseLG9kA7qcWxt3IVrOstQjtEJUM8Dt-y2tyjesotevGak8RneiwsfTOk9-5O8D1twLy3dA0god9aLAHLD6_ns7TxpbkByHeGCJu3zuZA0NhpjDAu5xibFlLtu8xeT6fBhwWn7-A4pNbiCRP14RiKiNpIaitp-Jilu0GlEY.BYO-aXCJ9g266D6Nin8UffLb27SsvdjpVhs8nh4_bpY&dib_tag=se&keywords=tb+303&qid=1769094702&sprefix=tb+303%2Caps%2C198&sr=8-2"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-amber-400 hover:text-amber-300 text-sm font-mono"
-                  >
-                    View on Amazon (affiliate link) ↗
-                  </a>
-                  <p className="text-gray-500 text-xs">
-                    📍 Affiliate disclosure: I earn a small commission if you purchase through this link, at no extra cost to you.
-                  </p>
-                </div>
-
-                <div className="bg-gray-800/50 rounded p-4 space-y-2">
-                  <div className="font-bold text-amber-200">DinSync RE-303 (Boutique Boutique)</div>
-                  <p className="text-gray-300 text-sm">
-                    The premium choice. Absolutely gorgeous, hand-crafted, and sounds incredibly close to the original. If you want the real deal feel, this is it.
-                  </p>
-                  <a
-                    href="https://www.kumptronics.com/shop/electronic-instruments/#cc-m-product-11786939257"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-amber-400 hover:text-amber-300 text-sm font-mono"
-                  >
-                    View at Kumptronics ↗
-                  </a>
-                </div>
-
-                <div className="bg-gray-800/50 rounded p-4 space-y-2">
-                  <div className="font-bold text-amber-200">Roland TB-03 (Boutique Official)</div>
-                  <p className="text-gray-300 text-sm">
-                    The official Roland re-issue. Compact, highly respected, and authentic to the original design.
-                  </p>
-                  <a
-                    href="https://www.amazon.com/Roland-TB-03-Bass-Line-Synthesizer/dp/B01M1DS5VV/ref=sr_1_1?crid=3HAWAWBXBF9V0&dib=eyJ2IjoiMSJ9.KM-PV8HweRNxon757IAunWYad86PP7o87cdo5PVAQz-QYtb4rOOYDIjihhA0n-xZnJAXV0Thrpmu3MV7t9kET3K7GrjhBMEMD2huV_K2yrZLgVkY4cV8TDxKHGaCFAl_-VI7kTEZjDAC89i6Sp08W7OstQjtEJUM8Dt-y2tyjes1pYLOZ9kz9Bc2uuNzKQZ_A1m_yAUz8oP2IEW2RzPScjaMgHbuzeMTe1r_X8DrX4cGzb8s-yjrtKI3zv6ekR1crznlQU_wBTi7FK3EdnfgE4WI0-Bm0jyg7F82zxdWSY0.t5dlSpcFRXikk2xd5owNXG9MaOLG1wEA6WdSh64MPMo&dib_tag=se&keywords=tb+303&qid=1769094634&sprefix=tb+303%2Caps%2C140&sr=8-1"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-amber-400 hover:text-amber-300 text-sm font-mono"
-                  >
-                    View on Amazon (affiliate link) ↗
-                  </a>
-                  <p className="text-gray-500 text-xs">
-                    📍 Affiliate disclosure: I earn a small commission if you purchase through this link, at no extra cost to you.
-                  </p>
-                </div>
-
-                <div className="bg-gray-800/50 rounded p-4 space-y-2">
-                  <div className="font-bold text-amber-200">Erica Synths Acidlab Bassline</div>
-                  <p className="text-gray-300 text-sm">
-                    Another solid boutique option with a unique character. Great for experimental acid work.
-                  </p>
-                  <a
-                    href="https://www.amazon.com/Erica-Synths-Bassline-Desktop-Synthesizer/dp/B08NTPXNNV/ref=sr_1_2?crid=1OZ7H3H24D5YE&dib=eyJ2IjoiMSJ9.aYpgf8O-Kxwnw_VijtFZMN-el_nS0bOUzYDG7FoiEgE.cmmvsC0POtNWPx2awksirFuBfOGEtnsMSgj9sl1rIng&dib_tag=se&keywords=acid+lab+bassline+synth&qid=1769094818&sprefix=acidlab+bassline+synth%2Caps%2C131&sr=8-2"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-amber-400 hover:text-amber-300 text-sm font-mono"
-                  >
-                    View on Amazon (affiliate link) ↗
-                  </a>
-                  <p className="text-gray-500 text-xs">
-                    📍 Affiliate disclosure: I earn a small commission if you purchase through this link, at no extra cost to you.
-                  </p>
-                </div>
-
-                <div className="bg-gray-800/50 rounded p-4 space-y-2">
-                  <div className="font-bold text-amber-200">Donner Essential B1</div>
-                  <p className="text-gray-300 text-sm">
-                    Affordable entry point with solid sound. Great for beginners exploring the 303 world.
-                  </p>
-                  <a
-                    href="https://www.amazon.com/Synthesizer-Donner-Essential-B1-Saturation/dp/B0BZ772G4B/ref=sr_1_4?crid=2YL6C7WXO7ATL&dib=eyJ2IjoiMSJ9.KM-PV8HweRNxon757IAunQt_GKMmT5HkTUW-vdrvdrs22Nv1P6_hgAnYuTBBb0c7lojgjHtA6gvBDauLR35wpHHDN1X66BiDO4pI5wrriPXEMYpz54wvoEwNcxQqBHeQ8HC1TseLG9kA7qcWxt3IVrOstQjtEJUM8Dt-y2tyjes1pYLOZ9kz9Bc2uuNzKQZ_haFzitDpDHADtVCmgPbQZz6_ns7TxpbkByHeGCJu3ztSguVpQukGdoGO5Xi8xbj5ue5dKBNExXbKvnRckGn27IRiKiNpIaitp-Jilu0GlEY.L1fcV62wuIjeoE0wPlvmTx40cBRfSJ4nWCxnqZf5lKU&dib_tag=se&keywords=tb+303&qid=1769094865&sprefix=tb+303%2Caps%2C198&sr=8-4"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-amber-400 hover:text-amber-300 text-sm font-mono"
-                  >
-                    View on Amazon (affiliate link) ↗
-                  </a>
-                  <p className="text-gray-500 text-xs">
-                    📍 Affiliate disclosure: I earn a small commission if you purchase through this link, at no extra cost to you.
-                  </p>
-                </div>
+                {hardwareItems.map((item) => (
+                  <div key={item.title} className="bg-gray-800/50 rounded p-4 space-y-2">
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="w-full sm:w-48 h-32 rounded border border-gray-700 overflow-hidden bg-gray-900/70">
+                        <img
+                          src={item.image}
+                          alt={item.alt}
+                          loading="lazy"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="space-y-2 flex-1">
+                        <div className="font-bold text-amber-200">{item.title}</div>
+                        <p className="text-gray-300 text-sm">{item.description}</p>
+                        <a
+                          href={item.link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-amber-400 hover:text-amber-300 text-sm font-mono"
+                        >
+                          {item.linkLabel}
+                        </a>
+                        {item.affiliate && (
+                          <p className="text-gray-500 text-xs">
+                            📍 Affiliate disclosure: I earn a small commission if you purchase through this link, at no extra cost to you.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -235,28 +265,42 @@ export function AboutPage() {
             <div className="space-y-4">
               <h3 className="text-xl font-bold text-amber-300">📚 Physical & Digital Resources</h3>
 
-              <div className="bg-gray-800/50 rounded p-4 space-y-2">
-                <div className="font-bold text-amber-200">Roland TB-303 Pattern Book</div>
-                <p className="text-gray-300 text-sm">
-                  Classic paper pattern sheets for recording your favorite basslines. For when you want that vintage feel.
-                </p>
-                <a
-                  href="https://www.amazon.com/Roland-TB-303-Pattern-book-favorites/dp/B0CH292Z3W/ref=sr_1_6?crid=2YL6C7WXO7ATL&dib=eyJ2IjoiMSJ9.KM-PV8HweRNxon757IAunQt_GKMmT5HkTUW-vdrvdrsGJx8t7rIywbyTzE5lFmq2Vgen9EzWZ1LU42PbHtPF3BaL_ZMlDU-bRZD7VCHZ1H0Pi1QowZLsD_KV7okWGskb8HC1TseLG9kA7qcWxt3IVrOstQjtEJUM8Dt-y2tyjesotevGak8RneiwsfTOk9-5O8D1twLy3dA0god9aLAHLD6_ns7TxpbkByHeGCJu3zuZA0NhpjDAu5xibFlLtu8xeT6fBhwWn7-A4pNbiCRP14RiKiNpIaitp-Jilu0GlEY.BYO-aXCJ9g266D6Nin8UffLb27SsvdjpVhs8nh4_bpY&dib_tag=se&keywords=tb+303&qid=1769094702&sprefix=tb+303%2Caps%2C198&sr=8-6"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-amber-400 hover:text-amber-300 text-sm font-mono"
-                >
-                  View on Amazon (affiliate link) ↗
-                </a>
-                <p className="text-gray-500 text-xs">
-                  📍 Affiliate disclosure: I earn a small commission if you purchase through this link, at no extra cost to you.
-                </p>
-              </div>
+              {resourceItems.map((item) => (
+                <div key={item.title} className="bg-gray-800/50 rounded p-4 space-y-2">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="w-full sm:w-48 h-32 rounded border border-gray-700 overflow-hidden bg-gray-900/70">
+                      <img
+                        src={item.image}
+                        alt={item.alt}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="space-y-2 flex-1">
+                      <div className="font-bold text-amber-200">{item.title}</div>
+                      <p className="text-gray-300 text-sm">{item.description}</p>
+                      <a
+                        href={item.link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-amber-400 hover:text-amber-300 text-sm font-mono"
+                      >
+                        {item.linkLabel}
+                      </a>
+                      {item.affiliate && (
+                        <p className="text-gray-500 text-xs">
+                          📍 Affiliate disclosure: I earn a small commission if you purchase through this link, at no extra cost to you.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
 
             <div className="bg-yellow-900/30 border border-yellow-700 rounded p-4">
               <p className="text-yellow-200 text-sm">
-                <span className="font-bold">Affiliate Transparency:</span> Some links above are Amazon affiliate links. If you make a purchase through them, I receive a small commission at no extra cost to you. This helps support Pattern 303 development. Thank you! 🙏
+                <span className="font-bold">Affiliate Transparency:</span> Some links above are Amazon affiliate links. If you make a purchase through them, I receive a small commission at no extra cost to you. This helps support Pattern 303 development. The photos shown here are representative instrument shots so you can quickly eyeball the gear; check the listing for exact details. Thank you! 🙏
               </p>
             </div>
           </div>

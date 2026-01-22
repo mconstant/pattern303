@@ -12,7 +12,7 @@ import { getPumpFunUrl } from './lib/token303';
 type Page = 'create' | 'profile' | 'discover' | 'about';
 
 function AppContent() {
-  const [currentPage, setCurrentPage] = useState<Page>('create');
+  const [currentPage, setCurrentPage] = useState<Page>('about');
   const [loadedPattern, setLoadedPattern] = useState<Pattern303 | null>(null);
   const [viewingProfileAddress, setViewingProfileAddress] = useState<string | null>(null);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
@@ -68,7 +68,13 @@ function AppContent() {
                       : 'text-gray-500 hover:text-white'
                   }`}
                 >
-                  {item.id === 'create' ? 'Create' : item.id === 'profile' ? 'Mine' : 'All'}
+                  {item.id === 'create'
+                    ? 'Create'
+                    : item.id === 'profile'
+                      ? 'Mine'
+                      : item.id === 'discover'
+                        ? 'All'
+                        : 'About'}
                 </button>
               ))}
             </nav>
