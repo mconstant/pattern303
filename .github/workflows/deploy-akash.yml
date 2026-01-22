@@ -163,22 +163,13 @@ jobs:
           echo "Found key name: $KEY_NAME"
           echo "KEY_NAME=$KEY_NAME" >> $GITHUB_ENV
 
-      - name: Make Solana RPC URL available
-        id: set-solana-rpc
-        run: |
-          if [ "${{ needs.set-environment.outputs.solana_network }}" == "mainnet-beta" ]; then
-            echo "SOLANA_RPC_URL=https://helius.rpc.mainnet.solana.com/?api-key=${{ secrets.VITE_HELIUS_API_KEY }}" >> $GITHUB_ENV
-          else
-            echo "SOLANA_RPC_URL=https://helius.rpc.devnet.solana.com/?api-key=${{ secrets.VITE_HELIUS_API_KEY }}" >> $GITHUB_ENV
-          fi
-
       - name: Prepare SDL file
         env:
           GITHUB_USERNAME: ${{ github.repository_owner }}
           GITHUB_REPO: ${{ github.event.repository.name }}
           GITHUB_ENVIRONMENT: ${{ needs.set-environment.outputs.environment }}
           COLLECTION_ADDRESS: ${{ secrets.VITE_COLLECTION_ADDRESS }}
-          SOLANA_RPC_URL: ${{ env.SOLANA_RPC_URL }}
+          SOLANA_RPC_URL: ${{ needs.set-environment.outputs.solana_network == 'mainnet-beta' && 'https://mainnet.helius-rpc.com/?api-key=' || 'https://devnet.helius-rpc.com/?api-key=' }}${{ secrets.VITE_HELIUS_API_KEY }}
           VERIFICATION_WALLET_PKEY: ${{ secrets.VERIFICATION_WALLET_PKEY }}   
         run: |
           # Use short SHA (7 chars) to match Docker tag
