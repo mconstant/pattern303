@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Pattern303, Step, GateType, PatternBank, PatternSection, PatternNumber, NetworkType } from '../types/pattern';
 import { useMint } from '../hooks/useMint';
 import { useToken303 } from '../hooks/useToken303';
@@ -181,6 +181,12 @@ export function PatternSheet({
   const { mint, reset, isMinting, mintResult, error: mintError, canMint } = useMint(pattern, network);
   const { isHolder } = useToken303(network);
   const [showMintResult, setShowMintResult] = useState(false);
+  const [tempoInput, setTempoInput] = useState(String(pattern.tempo));
+
+  // Sync tempo input when pattern.tempo changes externally
+  useEffect(() => {
+    setTempoInput(String(pattern.tempo));
+  }, [pattern.tempo]);
 
   const regularMintFee = getMintFee();
   const treasuryWallet = getTreasuryWallet();
@@ -376,11 +382,14 @@ export function PatternSheet({
               type="number"
               min={60}
               max={300}
-              value={pattern.tempo}
-              onChange={(e) => {
-                const val = parseInt(e.target.value);
-                if (!isNaN(val)) {
+              value={tempoInput}
+              onChange={(e) => setTempoInput(e.target.value)}
+              onBlur={() => {
+                const val = parseInt(tempoInput);
+                if (!isNaN(val) && val >= 1 && val <= 300) {
                   onTempoChange?.(val);
+                } else {
+                  setTempoInput(String(pattern.tempo));
                 }
               }}
               className="w-14 bg-white/50 text-center font-bold outline-none border border-gray-400 rounded"
