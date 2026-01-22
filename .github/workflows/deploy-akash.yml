@@ -72,6 +72,9 @@ jobs:
   deploy-akash:
     needs: build-and-push
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
 
     steps:
       - name: Checkout repository
@@ -182,13 +185,14 @@ jobs:
           AKASH_GAS_ADJUSTMENT: 1.5
           AKASH_GAS_PRICES: 0.025uakt
           AKASH_BROADCAST_MODE: block
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Find the actual key name in the keyring
           KEY_NAME=$(ls ~/.akash/keyring-file/*.info 2>/dev/null | head -1 | xargs basename 2>/dev/null | sed 's/.info$//' || echo "my-akash-account")
           echo "Using key name: $KEY_NAME"
           
           # Check if we have an existing deployment
-          DSEQ="${{ secrets.AKASH_DEPLOYMENT_DSEQ }}"
+          DSEQ="${{ vars.AKASH_DEPLOYMENT_DSEQ }}"
           ACTION="${{ github.event.inputs.action }}"
 
           # Update if DSEQ is set AND action is not explicitly "deploy"
@@ -222,7 +226,15 @@ jobs:
             # Extract DSEQ from result
             NEW_DSEQ=$(echo $RESULT | jq -r '.logs[0].events[] | select(.type=="akash.v1beta3.EventDeploymentCreated") | .attributes[] | select(.key=="dseq") | .value')
             echo "New DSEQ: $NEW_DSEQ"
-            echo "::notice::New deployment DSEQ: $NEW_DSEQ - Update your AKASH_DEPLOYMENT_DSEQ secret with this value"
+
+            # Save DSEQ to repository variable for future updates
+            if [ -n "$NEW_DSEQ" ] && [ "$NEW_DSEQ" != "null" ]; then
+              echo "Saving DSEQ to repository variable..."
+              gh variable set AKASH_DEPLOYMENT_DSEQ --body "$NEW_DSEQ"
+              echo "::notice::New deployment DSEQ: $NEW_DSEQ (automatically saved to repo variables)"
+            else
+              echo "::warning::Could not extract DSEQ from deployment result"
+            fi
           fi
 
       - name: Close deployment
@@ -240,7 +252,7 @@ jobs:
           # Find the actual key name in the keyring
           KEY_NAME=$(ls ~/.akash/keyring-file/*.info 2>/dev/null | head -1 | xargs basename 2>/dev/null | sed 's/.info$//' || echo "my-akash-account")
           
-          DSEQ="${{ secrets.AKASH_DEPLOYMENT_DSEQ }}"
+          DSEQ="${{ vars.AKASH_DEPLOYMENT_DSEQ }}"
           if [ -n "$DSEQ" ]; then
             echo "Closing deployment $DSEQ..."
             yes "$AKASH_KEY_PASSWORD" | akash tx deployment close \
