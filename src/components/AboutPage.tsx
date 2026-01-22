@@ -11,7 +11,7 @@ export function AboutPage() {
       description: 'The TD-3 MO is my daily driver. It captures the essence of the 303 at an incredible price point. Desktop format, solid build, and the sound is absolutely there.',
       link: 'https://www.amazon.com/Behringer-000-EYF02-00010-TD-3-MO-SR/dp/B09B6SQHXN/ref=sr_1_1?crid=C4F2YKQWTNY4&dib=eyJ2IjoiMSJ9.2ifWKAeFIfJMHpIOEMR6S4ubL0HvtoxMhVheuTyy71kn5E_yl979ApzWBacjbzkpB8eEweXzvlNcAx32AX4vSWivADLpeuI66LRo2VcfEmWJPwnoW7qMNg7zCPU5Cg4uQNPFN0wjweyTB81D-AidlTK8Q7PasjG58bfbby9dfJ5aKhcixUD-Cvj7bdIJ8w6UlpuuCYsZUG0UVm1UdqbQIeH58_BSzdIdXFJrMeCHIsvlhRiglUoq7QGJHv-bg_jzZXNIymH4z5Dw1cFv-Njfoyng7yUoUT8JjrTJaVHSu1A.wDZm62n_iPRt3DCGokyB9aSZxh4Ja1OXqpv8YheZFjY&dib_tag=se&keywords=tb-3-mo+behringer&qid=1769094561&sprefix=tb-3-mo+behringe%2Caps%2C127&sr=8-1',
       affiliate: true,
-      image: 'https://ws-na.amazon-adsystem.com/widgets/q?_encoding=UTF8&ASIN=B09B6SQHXN&Format=_SL500_&ID=AsinImage&MarketPlace=US&ServiceVersion=20070822&WS=1&tag=',
+      image: 'https://m.media-amazon.com/images/I/81X8t205dcL._AC_SL1500_.jpg',
       alt: 'Behringer TD-3 MO bassline synthesizer product photo',
       linkLabel: 'View on Amazon (affiliate link) ↗',
     },
@@ -20,7 +20,7 @@ export function AboutPage() {
       description: 'The bread and butter 303 clone. Rock solid, iconic orange look, and gets the job done beautifully.',
       link: 'https://www.amazon.com/Behringer-TD-3-AM-Synthesizer/dp/B0855K2MN2/ref=sr_1_2?crid=2YL6C7WXO7ATL&dib=eyJ2IjoiMSJ9.KM-PV8HweRNxon757IAunQt_GKMmT5HkTUW-vdrvdrsGJx8t7rIywbyTzE5lFmq2Vgen9EzWZ1LU42PbHtPF3BaL_ZMlDU-bRZD7VCHZ1H0Pi1QowZLsD_KV7okWGskb8HC1TseLG9kA7qcWxt3IVrOstQjtEJUM8Dt-y2tyjesotevGak8RneiwsfTOk9-5O8D1twLy3dA0god9aLAHLD6_ns7TxpbkByHeGCJu3zuZA0NhpjDAu5xibFlLtu8xeT6fBhwWn7-A4pNbiCRP14RiKiNpIaitp-Jilu0GlEY.BYO-aXCJ9g266D6Nin8UffLb27SsvdjpVhs8nh4_bpY&dib_tag=se&keywords=tb+303&qid=1769094702&sprefix=tb+303%2Caps%2C198&sr=8-2',
       affiliate: true,
-      image: 'https://ws-na.amazon-adsystem.com/widgets/q?_encoding=UTF8&ASIN=B0855K2MN2&Format=_SL500_&ID=AsinImage&MarketPlace=US&ServiceVersion=20070822&WS=1&tag=',
+      image: 'https://m.media-amazon.com/images/I/719w+coLrUL._AC_SL1500_.jpg',
       alt: 'Behringer TD-3 classic bassline synthesizer product photo',
       linkLabel: 'View on Amazon (affiliate link) ↗',
     },
@@ -29,7 +29,7 @@ export function AboutPage() {
       description: 'The premium choice. Absolutely gorgeous, hand-crafted, and sounds incredibly close to the original. If you want the real deal feel, this is it.',
       link: 'https://www.kumptronics.com/shop/electronic-instruments/#cc-m-product-11786939257',
       affiliate: false,
-      image: 'https://mediadl.musictribe.com/media/PLM/data/images/products/P0D3Q/2000x2000-TD-3-MO-SR.png',
+      image: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjZRm2BEIIQClg-FnDwsv_c5FY7WbvuIrCbOvlxkVVG2dyoc7Q4Fm28z6y1BgY8onjYze7ZpKLBVhQrBx72ZL0BLJQ9Icm-U_adRRbOxkCfWoDpsl7YVbHqyQSBVceVsniC8cT52w/s1600/2.jpg',
       alt: 'DinSync RE-303 style boutique silver bassline synth',
       linkLabel: 'View at Kumptronics ↗',
     },
@@ -38,7 +38,7 @@ export function AboutPage() {
       description: 'The official Roland re-issue. Compact, highly respected, and authentic to the original design.',
       link: 'https://www.amazon.com/Roland-TB-03-Bass-Line-Synthesizer/dp/B01M1DS5VV/ref=sr_1_1?crid=3HAWAWBXBF9V0&dib=eyJ2IjoiMSJ9.KM-PV8HweRNxon757IAunWYad86PP7o87cdo5PVAQz-QYtb4rOOYDIjihhA0n-xZnJAXV0Thrpmu3MV7t9kET3K7GrjhBMEMD2huV_K2yrZLgVkY4cV8TDxKHGaCFAl_-VI7kTEZjDAC89i6Sp08W7OstQjtEJUM8Dt-y2tyjes1pYLOZ9kz9Bc2uuNzKQZ_A1m_yAUz8oP2IEW2RzPScjaMgHbuzeMTe1r_X8DrX4cGzb8s-yjrtKI3zv6ekR1crznlQU_wBTi7FK3EdnfgE4WI0-Bm0jyg7F82zxdWSY0.t5dlSpcFRXikk2xd5owNXG9MaOLG1wEA6WdSh64MPMo&dib_tag=se&keywords=tb+303&qid=1769094634&sprefix=tb+303%2Caps%2C140&sr=8-1',
       affiliate: true,
-      image: 'https://ws-na.amazon-adsystem.com/widgets/q?_encoding=UTF8&ASIN=B01M1DS5VV&Format=_SL500_&ID=AsinImage&MarketPlace=US&ServiceVersion=20070822&WS=1&tag=',
+      image: 'https://m.media-amazon.com/images/I/714I81jBaML._AC_SL1500_.jpg',
       alt: 'Roland TB-03 boutique bassline synthesizer product photo',
       linkLabel: 'View on Amazon (affiliate link) ↗',
     },
@@ -47,7 +47,7 @@ export function AboutPage() {
       description: 'Another solid boutique option with a unique character. Great for experimental acid work.',
       link: 'https://www.amazon.com/Erica-Synths-Bassline-Desktop-Synthesizer/dp/B08NTPXNNV/ref=sr_1_2?crid=1OZ7H3H24D5YE&dib=eyJ2IjoiMSJ9.aYpgf8O-Kxwnw_VijtFZMN-el_nS0bOUzYDG7FoiEgE.cmmvsC0POtNWPx2awksirFuBfOGEtnsMSgj9sl1rIng&dib_tag=se&keywords=acid+lab+bassline+synth&qid=1769094818&sprefix=acidlab+bassline+synth%2Caps%2C131&sr=8-2',
       affiliate: true,
-      image: 'https://ws-na.amazon-adsystem.com/widgets/q?_encoding=UTF8&ASIN=B08NTPXNNV&Format=_SL500_&ID=AsinImage&MarketPlace=US&ServiceVersion=20070822&WS=1&tag=',
+      image: 'https://m.media-amazon.com/images/I/61JWN9uNDUL._AC_SL1106_.jpg',
       alt: 'Erica Synths Acidlab Bassline desktop synthesizer product photo',
       linkLabel: 'View on Amazon (affiliate link) ↗',
     },
@@ -56,7 +56,7 @@ export function AboutPage() {
       description: 'Affordable entry point with solid sound. Great for beginners exploring the 303 world.',
       link: 'https://www.amazon.com/Synthesizer-Donner-Essential-B1-Saturation/dp/B0BZ772G4B/ref=sr_1_4?crid=2YL6C7WXO7ATL&dib=eyJ2IjoiMSJ9.KM-PV8HweRNxon757IAunQt_GKMmT5HkTUW-vdrvdrs22Nv1P6_hgAnYuTBBb0c7lojgjHtA6gvBDauLR35wpHHDN1X66BiDO4pI5wrriPXEMYpz54wvoEwNcxQqBHeQ8HC1TseLG9kA7qcWxt3IVrOstQjtEJUM8Dt-y2tyjes1pYLOZ9kz9Bc2uuNzKQZ_haFzitDpDHADtVCmgPbQZz6_ns7TxpbkByHeGCJu3ztSguVpQukGdoGO5Xi8xbj5ue5dKBNExXbKvnRckGn27IRiKiNpIaitp-Jilu0GlEY.L1fcV62wuIjeoE0wPlvmTx40cBRfSJ4nWCxnqZf5lKU&dib_tag=se&keywords=tb+303&qid=1769094865&sprefix=tb+303%2Caps%2C198&sr=8-4',
       affiliate: true,
-      image: 'https://ws-na.amazon-adsystem.com/widgets/q?_encoding=UTF8&ASIN=B0BZ772G4B&Format=_SL500_&ID=AsinImage&MarketPlace=US&ServiceVersion=20070822&WS=1&tag=',
+      image: 'https://m.media-amazon.com/images/I/61lPecDR57L._AC_SL1500_.jpg',
       alt: 'Donner Essential B1 bass synthesizer product photo',
       linkLabel: 'View on Amazon (affiliate link) ↗',
     },
@@ -68,7 +68,7 @@ export function AboutPage() {
       description: 'Classic paper pattern sheets for recording your favorite basslines. For when you want that vintage feel.',
       link: 'https://www.amazon.com/Roland-TB-303-Pattern-book-favorites/dp/B0CH292Z3W/ref=sr_1_6?crid=2YL6C7WXO7ATL&dib=eyJ2IjoiMSJ9.KM-PV8HweRNxon757IAunQt_GKMmT5HkTUW-vdrvdrsGJx8t7rIywbyTzE5lFmq2Vgen9EzWZ1LU42PbHtPF3BaL_ZMlDU-bRZD7VCHZ1H0Pi1QowZLsD_KV7okWGskb8HC1TseLG9kA7qcWxt3IVrOstQjtEJUM8Dt-y2tyjesotevGak8RneiwsfTOk9-5O8D1twLy3dA0god9aLAHLD6_ns7TxpbkByHeGCJu3zuZA0NhpjDAu5xibFlLtu8xeT6fBhwWn7-A4pNbiCRP14RiKiNpIaitp-Jilu0GlEY.BYO-aXCJ9g266D6Nin8UffLb27SsvdjpVhs8nh4_bpY&dib_tag=se&keywords=tb+303&qid=1769094702&sprefix=tb+303%2Caps%2C198&sr=8-6',
       affiliate: true,
-      image: 'https://ws-na.amazon-adsystem.com/widgets/q?_encoding=UTF8&ASIN=B0CH292Z3W&Format=_SL500_&ID=AsinImage&MarketPlace=US&ServiceVersion=20070822&WS=1&tag=',
+      image: 'https://m.media-amazon.com/images/S/aplus-media-library-service-media/f1e8da51-0102-4ad1-8581-5459d450c413.__CR0,0,1940,600_PT0_SX970_V1___.jpg',
       alt: 'Roland TB-303 pattern book cover',
       linkLabel: 'View on Amazon (affiliate link) ↗',
     },
@@ -156,7 +156,7 @@ export function AboutPage() {
             </p>
 
             <p className="text-gray-300 leading-relaxed">
-              As an <span className="text-amber-200">IDM listener and electronic music enthusiast</span>, the 303 became more than just an instrument—it became a gateway. Artists like Aphex Twin, Autechre, and the whole ambient/acid house movement showed me how to push the boundaries of what this machine could do. And then there were the raves, the sweaty warehouse parties where that unmistakable <span className="italic">wobble</span> of a resonant filter sweep would make a thousand people move as one. Those experiences changed my life.
+              As an <span className="text-amber-200">IDM listener and electronic music enthusiast</span>, the 303 became more than just an instrument—it became a gateway. Artists like Aphex Twin, Autechre, and the whole ambient/acid house movement showed me how to push the boundaries of what this machine could do. And then there were the raves, the sweaty warehouse parties where that unmistakable <span className="italic">wobble</span> of a resonant filter sweep would make a thousand people move as one. If you've ever had a chance to be a part of making people move, using synths like this, two Tech 12s and a mixer or your voice or some instruments, this site is for you.
             </p>
 
             <p className="text-gray-300 leading-relaxed">
@@ -325,7 +325,7 @@ export function AboutPage() {
                 <div>
                   <div className="font-bold text-amber-200">Captain Pikant</div>
                   <p className="text-gray-300 text-sm mb-2">
-                    One of my absolute favorite 303 explorers. Captain Pikant makes stunning acid house and experimental work. This video is essential viewing:
+                    One of my absolute favorite 303 explorers. Captain Pikant dissects patterns and beats and presents them with unmatched production values. This video is essential viewing:
                   </p>
                   <a
                     href="https://www.youtube.com/watch?v=kf2-WLK3gPA"
