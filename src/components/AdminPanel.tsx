@@ -103,7 +103,7 @@ export function AdminPanel({ onClose }: AdminPanelProps) {
 
                 {result ? (
                   <div className="space-y-3">
-                    <p className="text-green-400 text-sm">Collection created successfully!</p>
+                    <p className="text-green-400 text-sm">Collection created successfully! Now go store it in your GitHub Actions secrets as VITE_COLLECTION_ADDRESS</p>
                     <div className="bg-black/30 rounded p-3">
                       <p className="text-xs text-gray-400 mb-1">Collection Address:</p>
                       <code className="text-sm text-synth-accent break-all">{result.address}</code>
