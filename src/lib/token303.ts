@@ -40,6 +40,14 @@ export const TOKEN_303_CONFIG = {
   discountedNdgThreshold: 303, // Hold 303+ tokens for discounted NDG changes
 };
 
+// Get Pump.fun link for the 303 token mint. Falls back to search if mint is not configured.
+export function getPumpFunUrl(): string {
+  if (TOKEN_303_CONFIG.mintAddress) {
+    return `https://pump.fun/coin/${TOKEN_303_CONFIG.mintAddress}`;
+  }
+  return 'https://pump.fun/search?query=Pattern%20303';
+}
+
 // Check if token is configured
 export function isTokenConfigured(): boolean {
   return !!TOKEN_303_CONFIG.mintAddress;

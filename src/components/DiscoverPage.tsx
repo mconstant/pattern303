@@ -5,6 +5,7 @@ import { PatternGrid } from './PatternCard';
 import { PatternNFT } from '../lib/patternNFT';
 import { Pattern303 } from '../types/pattern';
 import { CreatorDirectory } from './CreatorDirectory';
+import { getPumpFunUrl } from '../lib/token303';
 
 type DiscoverTab = 'patterns' | 'creators';
 
@@ -88,7 +89,7 @@ export function DiscoverPage({ onLoadPattern, onViewProfile }: DiscoverPageProps
         </ul>
         <a
           className="inline-flex items-center gap-1 mt-2 text-amber-400 hover:text-amber-300 font-mono text-xs"
-          href="https://pump.fun/search?query=Pattern%20303"
+          href={getPumpFunUrl()}
           target="_blank"
           rel="noreferrer"
         >

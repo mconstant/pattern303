@@ -6,6 +6,7 @@ import { WalletContextProvider } from './components/WalletProvider';
 import { WalletButton } from './components/WalletButton';
 import { AdminPanel, useIsTreasuryWallet } from './components/AdminPanel';
 import { Pattern303 } from './types/pattern';
+import { getPumpFunUrl } from './lib/token303';
 
 type Page = 'create' | 'profile' | 'discover';
 
@@ -91,7 +92,7 @@ function AppContent() {
           <span className="text-gray-300">Hold ≥303 $303 to mint patterns for free and get discounted nom de guerre mints.</span>
           <a
             className="text-amber-400 hover:text-amber-300 font-mono"
-            href="https://pump.fun/search?query=Pattern%20303"
+            href={getPumpFunUrl()}
             target="_blank"
             rel="noreferrer"
           >

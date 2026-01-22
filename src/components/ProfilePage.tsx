@@ -9,6 +9,7 @@ import { PatternNFT } from '../lib/patternNFT';
 import { Pattern303 } from '../types/pattern';
 import { getCreator } from '../lib/creators';
 import { formatWalletAddress } from '../lib/solanaNames';
+import { getPumpFunUrl } from '../lib/token303';
 
 type AvatarMode = 'none' | 'camera' | 'presets';
 
@@ -282,7 +283,7 @@ export function ProfilePage({ onLoadPattern, viewingAddress, onBackToOwnProfile 
               {!isHolder && (
                 <a
                   className="text-amber-400 hover:text-amber-300 font-mono"
-                  href="https://pump.fun/search?query=Pattern%20303"
+                  href={getPumpFunUrl()}
                   target="_blank"
                   rel="noreferrer"
                 >
