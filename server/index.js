@@ -17,12 +17,12 @@ app.use(express.json());
 const PORT = process.env.PORT || 3001;
 const RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
 const COLLECTION_ADDRESS = process.env.COLLECTION_ADDRESS;
-const TREASURY_PRIVATE_KEY = process.env.TREASURY_PRIVATE_KEY;
+const VERIFICATION_WALLET_PKEY = process.env.VERIFICATION_WALLET_PKEY;
 
-if (!COLLECTION_ADDRESS || !TREASURY_PRIVATE_KEY) {
+if (!COLLECTION_ADDRESS || !VERIFICATION_WALLET_PKEY) {
   console.error('❌ Missing required environment variables:');
   console.error('  - COLLECTION_ADDRESS');
-  console.error('  - TREASURY_PRIVATE_KEY');
+  console.error('  - VERIFICATION_WALLET_PKEY');
   process.exit(1);
 }
 
@@ -32,13 +32,13 @@ const umi = createUmi(RPC_URL).use(mplTokenMetadata());
 // Create signer from treasury private key (base58 string)
 let treasurySigner;
 try {
-  const privateKeyArray = JSON.parse(TREASURY_PRIVATE_KEY);
+  const privateKeyArray = JSON.parse(VERIFICATION_WALLET_PKEY);
   const keypair = umi.eddsa.createKeypairFromSecretKey(new Uint8Array(privateKeyArray));
   treasurySigner = createSignerFromKeypair(umi, keypair);
   console.log('✓ Treasury signer initialized:', keypair.publicKey.toString());
 } catch (error) {
   console.error('❌ Failed to initialize treasury signer:', error.message);
-  console.error('   TREASURY_PRIVATE_KEY should be a JSON array like: [1,2,3,...]');
+  console.error('   VERIFICATION_WALLET_PKEY should be a JSON array like: [1,2,3,...]');
   process.exit(1);
 }
 

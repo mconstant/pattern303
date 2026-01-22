@@ -453,7 +453,7 @@ akash logs <deployment-id> --service web --follow
 ### Verification Failing
 
 1. Check backend logs
-2. Verify `TREASURY_PRIVATE_KEY` is correct
+2. Verify `VERIFICATION_WALLET_PKEY` is correct
 3. Verify `COLLECTION_ADDRESS` matches
 4. Check RPC URL is valid
 5. Ensure rate limit not exceeded

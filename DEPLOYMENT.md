@@ -34,7 +34,7 @@ These are passed at container runtime in Akash:
 
 ```bash
 COLLECTION_ADDRESS=EZPiXbhJ5MMdQ79ATXmtQx1xVaC9yB5r19CSLxXRkcmz
-TREASURY_PRIVATE_KEY=[1,2,3,...]  # JSON array of your private key bytes
+VERIFICATION_WALLET_PKEY=[1,2,3,...]  # JSON array of your private key bytes
 SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
 PORT=3001
 ```
@@ -78,7 +78,7 @@ VITE_VERIFY_API_URL=http://localhost:3001
 
 # Backend vars (for local testing)
 COLLECTION_ADDRESS=EZPiXbhJ5MMdQ79ATXmtQx1xVaC9yB5r19CSLxXRkcmz
-TREASURY_PRIVATE_KEY=[your,private,key,array]
+VERIFICATION_WALLET_PKEY=[your,private,key,array]
 SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
 ```
 
@@ -122,7 +122,7 @@ docker buildx build \
 2. Deploy with your SDL (deploy.yaml)
 3. **Add environment variables** in the deployment form:
    - `COLLECTION_ADDRESS`
-   - `TREASURY_PRIVATE_KEY`
+   - `VERIFICATION_WALLET_PKEY`
    - `SOLANA_RPC_URL`
 
 ### Option 2: Via SDL File
@@ -132,7 +132,7 @@ Your `deploy.yaml` already includes the env vars section. Just set them in Akash
 ```yaml
 env:
   - COLLECTION_ADDRESS=EZPi...
-  - TREASURY_PRIVATE_KEY=[1,2,3,...]
+  - VERIFICATION_WALLET_PKEY=[1,2,3,...]
   - SOLANA_RPC_URL=https://...
   - PORT=3001
 ```
@@ -177,7 +177,7 @@ memory:
 
 ### Backend not starting
 - Check logs: `docker logs <container>`
-- Verify `TREASURY_PRIVATE_KEY` is valid JSON array
+- Verify `VERIFICATION_WALLET_PKEY` is valid JSON array
 - Ensure `COLLECTION_ADDRESS` matches your collection
 
 ### Verification failing

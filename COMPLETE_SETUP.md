@@ -127,7 +127,7 @@ cat ~/.config/solana/id.json
 3. **Add environment variables:**
    ```
    COLLECTION_ADDRESS=EZPiXbhJ5MMdQ79ATXmtQx1xVaC9yB5r19CSLxXRkcmz
-   TREASURY_PRIVATE_KEY=[paste,your,private,key,array]
+   VERIFICATION_WALLET_PKEY=[paste,your,private,key,array]
    SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
    PORT=3001
    ```
@@ -297,7 +297,7 @@ akash logs <deployment-id> --service web | grep "Missing required"
 
 **Fix:**
 1. Verify all 3 env vars set in Akash Console
-2. Verify `TREASURY_PRIVATE_KEY` is valid JSON array
+2. Verify `VERIFICATION_WALLET_PKEY` is valid JSON array
 3. Redeploy if needed
 
 ### Tests Failing

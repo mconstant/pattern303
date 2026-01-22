@@ -15,7 +15,7 @@ This allows patterns to appear in the "All Patterns" collection view immediately
 
 ```bash
 COLLECTION_ADDRESS=EZPiXbhJ5MMdQ79ATXmtQx1xVaC9yB5r19CSLxXRkcmz
-TREASURY_PRIVATE_KEY=[1,2,3,...]  # JSON array of private key bytes
+VERIFICATION_WALLET_PKEY=[1,2,3,...]  # JSON array of private key bytes
 SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
 PORT=3001
 ```

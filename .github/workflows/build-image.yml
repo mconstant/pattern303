@@ -74,5 +74,5 @@ jobs:
           echo "   - VITE_COLLECTION_ADDRESS" >> $GITHUB_STEP_SUMMARY
           echo "   - VITE_HELIUS_API_KEY" >> $GITHUB_STEP_SUMMARY
           echo "   - COLLECTION_ADDRESS (backend)" >> $GITHUB_STEP_SUMMARY
-          echo "   - TREASURY_PRIVATE_KEY (backend)" >> $GITHUB_STEP_SUMMARY
+          echo "   - VERIFICATION_WALLET_PKEY (backend)" >> $GITHUB_STEP_SUMMARY
           echo "   - SOLANA_RPC_URL (backend)" >> $GITHUB_STEP_SUMMARY

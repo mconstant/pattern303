@@ -46,7 +46,7 @@ jobs:
         sleep 5
       env:
         COLLECTION_ADDRESS: ${{ secrets.VITE_COLLECTION_ADDRESS }}
-        TREASURY_PRIVATE_KEY: ${{ secrets.TREASURY_PRIVATE_KEY }}
+        VERIFICATION_WALLET_PKEY: ${{ secrets.VERIFICATION_WALLET_PKEY }}
         SOLANA_RPC_URL: https://api.mainnet-beta.solana.com
         PORT: 3001
       continue-on-error: true  # Backend might not start without valid keys

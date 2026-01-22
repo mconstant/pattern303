@@ -31,7 +31,7 @@
 ### Does it make deployment more complicated?
 **No!** Same workflow, just add 3 environment variables in Akash Console:
 - `COLLECTION_ADDRESS`
-- `TREASURY_PRIVATE_KEY`
+- `VERIFICATION_WALLET_PKEY`
 - `SOLANA_RPC_URL`
 
 ### Does it need more VITE_ build args?
@@ -111,7 +111,7 @@ docker buildx build \
 1. Same SDL file (deploy.yaml)
 2. Add 3 env vars in Console:
    - `COLLECTION_ADDRESS=EZPi...`
-   - `TREASURY_PRIVATE_KEY=[1,2,3,...]`
+   - `VERIFICATION_WALLET_PKEY=[1,2,3,...]`
    - `SOLANA_RPC_URL=https://...`
 3. Deploy!
 

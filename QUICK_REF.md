@@ -17,7 +17,7 @@ cat ~/.config/solana/id.json | pbcopy
 Add 3 environment variables in Console:
 ```
 COLLECTION_ADDRESS=EZPiXbhJ5MMdQ79ATXmtQx1xVaC9yB5r19CSLxXRkcmz
-TREASURY_PRIVATE_KEY=[paste from above]
+VERIFICATION_WALLET_PKEY=[paste from above]
 SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
 ```
 
