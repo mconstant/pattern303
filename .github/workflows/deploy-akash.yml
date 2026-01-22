@@ -170,13 +170,12 @@ jobs:
           PREFERRED_PROVIDERS: "akash18ga02jzaq8cw52anyhzkwta5wygufgu6zsz6xc,akash15ksejj7g4su7ljufsg0a8eglvkje94z8qsh68a,akash175llqyjvxfle9qwt740vm46772dzaznpzgm576"
         run: |
           DSEQ="${{ secrets.AKASH_DEPLOYMENT_DSEQ }}"
-          ACTION="${{ github.event.inputs.action }}"
 
           # Create password file for all operations (multiple lines in case of multiple prompts)
           for i in {1..10}; do echo "$AKASH_KEY_PASSWORD"; done > /tmp/akash_pass.txt
-          
-          # Update if DSEQ is set AND action is not explicitly "deploy"
-          if [ -n "$DSEQ" ] && [ "$ACTION" != "deploy" ]; then
+
+          # Update existing deployment if DSEQ is set, otherwise create new
+          if [ -n "$DSEQ" ]; then
             echo "Updating existing deployment $DSEQ..."
             provider-services tx deployment update deploy-final.yaml \
               --dseq $DSEQ \
