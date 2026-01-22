@@ -169,7 +169,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           PREFERRED_PROVIDERS: "akash18ga02jzaq8cw52anyhzkwta5wygufgu6zsz6xc,akash15ksejj7g4su7ljufsg0a8eglvkje94z8qsh68a,akash175llqyjvxfle9qwt740vm46772dzaznpzgm576"
         run: |
-          DSEQ="${{ vars.AKASH_DEPLOYMENT_DSEQ }}"
+          DSEQ="${{ secrets.AKASH_DEPLOYMENT_DSEQ }}"
           ACTION="${{ github.event.inputs.action }}"
 
           # Create password file for all operations (multiple lines in case of multiple prompts)
@@ -217,7 +217,7 @@ jobs:
             fi
 
             # Save DSEQ
-            if gh variable set AKASH_DEPLOYMENT_DSEQ --body "$NEW_DSEQ" 2>/dev/null; then
+            if gh secret set AKASH_DEPLOYMENT_DSEQ --body "$NEW_DSEQ" 2>/dev/null; then
               echo "✓ DSEQ saved to repository variable"
             else
               echo "::warning::Could not auto-save DSEQ. Run: gh variable set AKASH_DEPLOYMENT_DSEQ --body '$NEW_DSEQ'"
@@ -309,7 +309,7 @@ jobs:
         run: |
           for i in {1..10}; do echo "$AKASH_KEY_PASSWORD"; done > /tmp/akash_pass.txt
           
-          DSEQ="${{ vars.AKASH_DEPLOYMENT_DSEQ }}"
+          DSEQ="${{ secrets.AKASH_DEPLOYMENT_DSEQ }}"
           if [ -n "$DSEQ" ]; then
             echo "Closing deployment $DSEQ..."
             provider-services tx deployment close \
