@@ -186,17 +186,18 @@ jobs:
           AKASH_GAS_PRICES: 0.025uakt
           AKASH_BROADCAST_MODE: block
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Preferred providers (cheapest will be selected)
+          PREFERRED_PROVIDERS: "akash18ga02jzaq8cw52anyhzkwta5wygufgu6zsz6xc,akash15ksejj7g4su7ljufsg0a8eglvkje94z8qsh68a,akash175llqyjvxfle9qwt740vm46772dzaznpzgm576"
         run: |
           # Find the actual key name in the keyring
           KEY_NAME=$(ls ~/.akash/keyring-file/*.info 2>/dev/null | head -1 | xargs basename 2>/dev/null | sed 's/.info$//' || echo "my-akash-account")
           echo "Using key name: $KEY_NAME"
-          
+
           # Check if we have an existing deployment
           DSEQ="${{ vars.AKASH_DEPLOYMENT_DSEQ }}"
           ACTION="${{ github.event.inputs.action }}"
 
           # Update if DSEQ is set AND action is not explicitly "deploy"
-          # This means: push with DSEQ → update, manual "update" → update, manual "deploy" → create new
           if [ -n "$DSEQ" ] && [ "$ACTION" != "deploy" ]; then
             echo "Updating existing deployment $DSEQ..."
             yes "$AKASH_KEY_PASSWORD" | akash tx deployment update deploy-final.yaml \
@@ -210,31 +211,119 @@ jobs:
             echo "✓ Deployment $DSEQ updated"
           else
             echo "Creating new deployment..."
-            # Create deployment and capture the DSEQ
-            RESULT=$(yes "$AKASH_KEY_PASSWORD" | akash tx deployment create deploy-final.yaml \
+            # Create deployment
+            yes "$AKASH_KEY_PASSWORD" | akash tx deployment create deploy-final.yaml \
               --keyring-backend file \
               --home ~/.akash \
               --from "$KEY_NAME" \
               --node $AKASH_NODE \
               --chain-id $AKASH_CHAIN_ID \
-              --yes \
-              -o json)
+              --yes
 
-            echo "Deployment created. Check Akash Console for bid selection."
-            echo "Result: $RESULT"
+            # Wait for deployment to be indexed
+            sleep 10
 
-            # Extract DSEQ from result
-            NEW_DSEQ=$(echo $RESULT | jq -r '.logs[0].events[] | select(.type=="akash.v1beta3.EventDeploymentCreated") | .attributes[] | select(.key=="dseq") | .value')
+            # Get DSEQ by querying our deployments
+            echo "Finding deployment DSEQ..."
+            NEW_DSEQ=$(akash query deployment list --owner $AKASH_FROM --state active --node $AKASH_NODE -o json | jq -r '.deployments | sort_by(.deployment.id.dseq | tonumber) | last | .deployment.id.dseq')
             echo "New DSEQ: $NEW_DSEQ"
 
-            # Save DSEQ to repository variable for future updates
-            if [ -n "$NEW_DSEQ" ] && [ "$NEW_DSEQ" != "null" ]; then
-              echo "Saving DSEQ to repository variable..."
-              gh variable set AKASH_DEPLOYMENT_DSEQ --body "$NEW_DSEQ"
-              echo "::notice::New deployment DSEQ: $NEW_DSEQ (automatically saved to repo variables)"
-            else
-              echo "::warning::Could not extract DSEQ from deployment result"
+            if [ -z "$NEW_DSEQ" ] || [ "$NEW_DSEQ" = "null" ]; then
+              echo "::error::Failed to find deployment DSEQ"
+              exit 1
             fi
+
+            # Save DSEQ to repository variable
+            echo "Saving DSEQ to repository variable..."
+            gh variable set AKASH_DEPLOYMENT_DSEQ --body "$NEW_DSEQ"
+            DSEQ="$NEW_DSEQ"
+
+            # Wait for bids
+            echo "Waiting for bids from providers..."
+            for i in {1..12}; do
+              sleep 10
+              BIDS=$(akash query market bid list --owner $AKASH_FROM --dseq $DSEQ --node $AKASH_NODE -o json)
+              BID_COUNT=$(echo "$BIDS" | jq '.bids | length')
+              echo "Attempt $i: Found $BID_COUNT bids"
+              if [ "$BID_COUNT" -gt 0 ]; then
+                break
+              fi
+            done
+
+            if [ "$BID_COUNT" -eq 0 ]; then
+              echo "::error::No bids received after 2 minutes"
+              exit 1
+            fi
+
+            # Select cheapest bid from preferred providers
+            echo "Selecting cheapest bid from preferred providers..."
+            SELECTED_BID=$(echo "$BIDS" | jq -r --arg providers "$PREFERRED_PROVIDERS" '
+              .bids
+              | map(select(.bid.state == "open"))
+              | map(select(.bid.id.provider as $p | ($providers | split(",") | index($p))))
+              | sort_by(.bid.price.amount | tonumber)
+              | first
+            ')
+
+            if [ -z "$SELECTED_BID" ] || [ "$SELECTED_BID" = "null" ]; then
+              echo "No bids from preferred providers, selecting cheapest overall..."
+              SELECTED_BID=$(echo "$BIDS" | jq -r '.bids | map(select(.bid.state == "open")) | sort_by(.bid.price.amount | tonumber) | first')
+            fi
+
+            PROVIDER=$(echo "$SELECTED_BID" | jq -r '.bid.id.provider')
+            GSEQ=$(echo "$SELECTED_BID" | jq -r '.bid.id.gseq')
+            OSEQ=$(echo "$SELECTED_BID" | jq -r '.bid.id.oseq')
+            PRICE=$(echo "$SELECTED_BID" | jq -r '.bid.price.amount')
+
+            echo "Selected provider: $PROVIDER"
+            echo "Price: $PRICE uakt/block"
+
+            # Create lease (accept bid)
+            echo "Creating lease..."
+            yes "$AKASH_KEY_PASSWORD" | akash tx market lease create \
+              --dseq $DSEQ \
+              --gseq $GSEQ \
+              --oseq $OSEQ \
+              --provider $PROVIDER \
+              --keyring-backend file \
+              --home ~/.akash \
+              --from "$KEY_NAME" \
+              --node $AKASH_NODE \
+              --chain-id $AKASH_CHAIN_ID \
+              --yes
+
+            # Wait for lease to be created
+            sleep 10
+
+            # Send manifest to provider
+            echo "Sending manifest to provider..."
+            yes "$AKASH_KEY_PASSWORD" | akash provider send-manifest deploy-final.yaml \
+              --dseq $DSEQ \
+              --provider $PROVIDER \
+              --keyring-backend file \
+              --home ~/.akash \
+              --from "$KEY_NAME" \
+              --node $AKASH_NODE
+
+            # Get service URL
+            sleep 5
+            echo "Fetching service status..."
+            SERVICE_STATUS=$(yes "$AKASH_KEY_PASSWORD" | akash provider lease-status \
+              --dseq $DSEQ \
+              --gseq $GSEQ \
+              --oseq $OSEQ \
+              --provider $PROVIDER \
+              --keyring-backend file \
+              --home ~/.akash \
+              --from "$KEY_NAME" \
+              --node $AKASH_NODE 2>/dev/null || echo "{}")
+
+            SERVICE_URL=$(echo "$SERVICE_STATUS" | jq -r '.services.web.uris[0] // empty')
+            if [ -n "$SERVICE_URL" ]; then
+              echo "::notice::Deployment live at: https://$SERVICE_URL"
+            fi
+
+            echo "✓ Deployment complete! DSEQ: $DSEQ, Provider: $PROVIDER"
           fi
 
       - name: Close deployment
