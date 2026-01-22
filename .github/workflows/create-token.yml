@@ -3,6 +3,14 @@ name: Create 303 Token on Pump.fun
 on:
   workflow_dispatch:
     inputs:
+      environment:
+        description: 'Target environment (dev=devnet, prod=mainnet)'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prod
       token_name:
         description: 'Token name (e.g., "Pattern 303")'
         required: true
@@ -31,20 +39,24 @@ on:
         description: 'Telegram URL'
         required: false
         default: ''
-      cluster:
-        description: 'Solana cluster'
-        required: true
-        default: 'devnet'
-        type: choice
-        options:
-          - devnet
-          - mainnet-beta
 
 jobs:
   create-token:
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
 
     steps:
+      - name: Set cluster from environment
+        id: set-cluster
+        run: |
+          if [ "${{ inputs.environment }}" == "prod" ]; then
+            echo "cluster=mainnet-beta" >> $GITHUB_OUTPUT
+            echo "cluster_short=mainnet" >> $GITHUB_OUTPUT
+          else
+            echo "cluster=devnet" >> $GITHUB_OUTPUT
+            echo "cluster_short=devnet" >> $GITHUB_OUTPUT
+          fi
+
       - name: Checkout pattern303 repo
         uses: actions/checkout@v4
 
@@ -94,14 +106,8 @@ jobs:
         run: |
           cd pumpfun-raydium-cli-tools/src/pumpfunsdk/pumpdotfun-sdk
 
-          # Set cluster-specific endpoint
-          if [ "${{ inputs.cluster }}" == "mainnet-beta" ]; then
-            export CLUSTER="mainnet"
-          else
-            export CLUSTER="devnet"
-          fi
-
-          echo "Creating token on $CLUSTER..."
+          export CLUSTER="${{ steps.set-cluster.outputs.cluster_short }}"
+          echo "Creating token on $CLUSTER (${{ inputs.environment }} environment)..."
 
           node src/createAndBuy.js \
             --pathToMintKeypair "../pump-keypair/mint.json" \
@@ -125,15 +131,16 @@ jobs:
           echo "Token Creation Complete!"
           echo "================================================"
           echo ""
+          echo "Environment: ${{ inputs.environment }}"
           echo "Token Name: ${{ inputs.token_name }}"
           echo "Token Symbol: ${{ inputs.token_symbol }}"
-          echo "Cluster: ${{ inputs.cluster }}"
+          echo "Cluster: ${{ steps.set-cluster.outputs.cluster }}"
           echo "Initial Buy: ${{ inputs.initial_buy_sol }} SOL"
           echo ""
           echo "Mint Address: ${{ steps.create_token.outputs.mint_address }}"
           echo ""
           echo "Next steps:"
-          echo "1. Add VITE_303_TOKEN_MINT=${{ steps.create_token.outputs.mint_address }} to your environment"
+          echo "1. Add VITE_303_TOKEN_MINT=${{ steps.create_token.outputs.mint_address }} to your ${{ inputs.environment }} environment secrets"
           echo "2. Rebuild and redeploy the app"
           echo "================================================"
 
@@ -143,13 +150,15 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | ${{ inputs.environment }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Name | ${{ inputs.token_name }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Symbol | ${{ inputs.token_symbol }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Cluster | ${{ inputs.cluster }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Cluster | ${{ steps.set-cluster.outputs.cluster }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Initial Buy | ${{ inputs.initial_buy_sol }} SOL |" >> $GITHUB_STEP_SUMMARY
           echo "| Mint Address | \`${{ steps.create_token.outputs.mint_address }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Environment Variable" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "Add this secret to your **${{ inputs.environment }}** environment:" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           echo "VITE_303_TOKEN_MINT=${{ steps.create_token.outputs.mint_address }}" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

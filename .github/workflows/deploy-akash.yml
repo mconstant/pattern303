@@ -4,12 +4,24 @@ on:
   push:
     branches:
       - main
+      - dev
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prod
       action:
         description: 'Deployment action'
         required: true
-        default: 'deploy'
+        default: 'update'
         type: choice
         options:
           - deploy
@@ -21,8 +33,42 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-and-push:
+  # Determine which environment to use based on trigger
+  set-environment:
     runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+      solana_network: ${{ steps.set-env.outputs.solana_network }}
+    steps:
+      - name: Determine environment
+        id: set-env
+        run: |
+          # workflow_dispatch uses the input directly
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            ENV="${{ inputs.environment }}"
+          # push to main = prod
+          elif [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            ENV="prod"
+          # push to dev or PR to main = dev
+          else
+            ENV="dev"
+          fi
+
+          echo "environment=$ENV" >> $GITHUB_OUTPUT
+
+          # Set Solana network based on environment
+          if [ "$ENV" == "prod" ]; then
+            echo "solana_network=mainnet-beta" >> $GITHUB_OUTPUT
+          else
+            echo "solana_network=devnet" >> $GITHUB_OUTPUT
+          fi
+
+          echo "Selected environment: $ENV"
+
+  build-and-push:
+    needs: set-environment
+    runs-on: ubuntu-latest
+    environment: ${{ needs.set-environment.outputs.environment }}
     permissions:
       contents: read
       packages: write
@@ -52,7 +98,8 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=sha,prefix=
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=dev-latest,enable=${{ github.ref == 'refs/heads/dev' }}
 
       - name: Build and push Docker image
         id: build
@@ -66,12 +113,14 @@ jobs:
             VITE_TREASURY_WALLET=${{ secrets.VITE_TREASURY_WALLET }}
             VITE_303_TOKEN_MINT=${{ secrets.VITE_303_TOKEN_MINT }}
             VITE_COLLECTION_ADDRESS=${{ secrets.VITE_COLLECTION_ADDRESS }}
+            VITE_SOLANA_NETWORK=${{ needs.set-environment.outputs.solana_network }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
   deploy-akash:
-    needs: build-and-push
+    needs: [set-environment, build-and-push]
     runs-on: ubuntu-latest
+    environment: ${{ needs.set-environment.outputs.environment }}
     permissions:
       contents: read
       actions: write
@@ -79,6 +128,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Display deployment info
+        run: |
+          echo "Environment: ${{ needs.set-environment.outputs.environment }}"
+          echo "Solana Network: ${{ needs.set-environment.outputs.solana_network }}"
+          echo "Trigger: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
 
       - name: Install Akash provider-services CLI
         run: |
@@ -100,7 +156,7 @@ jobs:
           # Verify keyring setup
           echo "=== Keyring files extracted ==="
           ls -la ~/.akash/keyring-file/
-          
+
           # Find key name
           KEY_NAME=$(ls ~/.akash/keyring-file/*.info 2>/dev/null | head -1 | xargs basename 2>/dev/null | sed 's/.info$//' || echo "my-akash-account")
           echo "Found key name: $KEY_NAME"
@@ -131,28 +187,28 @@ jobs:
           # Check balance (no password needed for queries)
           echo "Checking account balance..."
           provider-services query bank balances --node $AKASH_NODE $AKASH_FROM
-          
+
           # Generate and publish certificate
           echo "Generating client certificate..."
           # Create a temporary password file with multiple lines (in case it prompts multiple times)
           for i in {1..10}; do echo "$AKASH_KEY_PASSWORD"; done > /tmp/akash_pass.txt
-          
+
           # Use the password file with input redirection
           provider-services tx cert generate client \
             --from "$KEY_NAME" \
             --overwrite \
             -y < /tmp/akash_pass.txt
-          
+
           echo "Publishing certificate to blockchain..."
           provider-services tx cert publish client \
             --from "$KEY_NAME" \
             -y < /tmp/akash_pass.txt
-          
+
           # Clean up password file
           rm -f /tmp/akash_pass.txt
-          
+
           sleep 5
-          echo "✓ Certificate created and published"
+          echo "Certificate created and published"
 
       - name: Deploy to Akash
         if: github.event.inputs.action != 'close'
@@ -170,18 +226,19 @@ jobs:
           PREFERRED_PROVIDERS: "akash18ga02jzaq8cw52anyhzkwta5wygufgu6zsz6xc,akash15ksejj7g4su7ljufsg0a8eglvkje94z8qsh68a,akash175llqyjvxfle9qwt740vm46772dzaznpzgm576"
         run: |
           DSEQ="${{ secrets.AKASH_DEPLOYMENT_DSEQ }}"
+          ENV="${{ needs.set-environment.outputs.environment }}"
 
           # Create password file for all operations (multiple lines in case of multiple prompts)
           for i in {1..10}; do echo "$AKASH_KEY_PASSWORD"; done > /tmp/akash_pass.txt
 
           # Update existing deployment if DSEQ is set, otherwise create new
           if [ -n "$DSEQ" ]; then
-            echo "Updating existing deployment $DSEQ..."
+            echo "Updating existing $ENV deployment $DSEQ..."
             provider-services tx deployment update deploy-final.yaml \
               --dseq $DSEQ \
               --from "$KEY_NAME" \
               -y < /tmp/akash_pass.txt
-            
+
             # Send updated manifest
             echo "Sending updated manifest..."
             PROVIDER=$(provider-services query market lease list --owner $AKASH_FROM --dseq $DSEQ -o json | jq -r '.leases[0].lease.lease.id.provider // .leases[0].lease.id.provider')
@@ -189,25 +246,25 @@ jobs:
               --dseq $DSEQ \
               --provider $PROVIDER \
               --from "$KEY_NAME" < /tmp/akash_pass.txt
-            echo "✓ Deployment $DSEQ updated"
+            echo "Deployment $DSEQ updated"
           else
-            echo "Creating new deployment..."
+            echo "Creating new $ENV deployment..."
             provider-services tx deployment create deploy-final.yaml \
               --from "$KEY_NAME" \
               -y < /tmp/akash_pass.txt
-            
+
             # Wait for deployment to be indexed
             echo "Waiting for deployment to be indexed..."
             sleep 15
-            
+
             # Extract DSEQ - try multiple possible JSON paths
             NEW_DSEQ=$(provider-services query deployment list --owner $AKASH_FROM --state active -o json | jq -r '.deployments[-1].deployment.deployment.id.dseq // .deployments[-1].deployment.id.dseq // empty')
-            
+
             # If still empty, try without state filter
             if [ -z "$NEW_DSEQ" ] || [ "$NEW_DSEQ" = "null" ]; then
               NEW_DSEQ=$(provider-services query deployment list --owner $AKASH_FROM -o json | jq -r '.deployments[-1].deployment.deployment.id.dseq // .deployments[-1].deployment.id.dseq // empty')
             fi
-            
+
             echo "New DSEQ: $NEW_DSEQ"
 
             if [ -z "$NEW_DSEQ" ] || [ "$NEW_DSEQ" = "null" ]; then
@@ -215,11 +272,11 @@ jobs:
               exit 1
             fi
 
-            # Save DSEQ
-            if gh secret set AKASH_DEPLOYMENT_DSEQ --body "$NEW_DSEQ" 2>/dev/null; then
-              echo "✓ DSEQ saved to repository variable"
+            # Save DSEQ to secrets for env
+            if gh secret set AKASH_DEPLOYMENT_DSEQ --body "$NEW_DSEQ" --env "$ENV" 2>/dev/null; then
+              echo "DSEQ saved to $ENV environment secrets"
             else
-              echo "::warning::Could not auto-save DSEQ. Run: gh variable set AKASH_DEPLOYMENT_DSEQ --body '$NEW_DSEQ'"
+              echo "::warning::Could not auto-save DSEQ. Please add AKASH_DEPLOYMENT_DSEQ=$NEW_DSEQ as a secretto the $ENV environment"
             fi
             DSEQ="$NEW_DSEQ"
 
@@ -288,9 +345,9 @@ jobs:
               echo "::notice::Deployment live at: https://$SERVICE_URL"
             fi
 
-            echo "✓ Deployment complete! DSEQ: $DSEQ"
+            echo "Deployment complete! DSEQ: $DSEQ"
           fi
-          
+
           # Clean up password file
           rm -f /tmp/akash_pass.txt
 
@@ -307,7 +364,7 @@ jobs:
           AKASH_SIGN_MODE: amino-json
         run: |
           for i in {1..10}; do echo "$AKASH_KEY_PASSWORD"; done > /tmp/akash_pass.txt
-          
+
           DSEQ="${{ secrets.AKASH_DEPLOYMENT_DSEQ }}"
           if [ -n "$DSEQ" ]; then
             echo "Closing deployment $DSEQ..."
@@ -315,21 +372,21 @@ jobs:
               --dseq $DSEQ \
               --from "$KEY_NAME" \
               -y < /tmp/akash_pass.txt
-            echo "✓ Deployment closed"
+            echo "Deployment closed"
           else
             echo "No DSEQ provided, nothing to close"
           fi
-          
+
           rm -f /tmp/akash_pass.txt
 
       - name: Deployment summary
         run: |
           echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Image:** \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Action:** ${{ github.event.inputs.action || 'deploy' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** ${{ needs.set-environment.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Solana Network:** ${{ needs.set-environment.outputs.solana_network }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image:** \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$(echo ${{ github.sha }} | cut -c1-7)\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Action:** ${{ github.event.inputs.action || 'update' }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
-          echo "1. Go to [Akash Console](https://console.akash.network) to view and manage your deployment" >> $GITHUB_STEP_SUMMARY
-          echo "2. Select a bid from providers" >> $GITHUB_STEP_SUMMARY
-          echo "3. Once deployed, you'll get a URL to access your application" >> $GITHUB_STEP_SUMMARY
+          echo "### Environment Secrets Used" >> $GITHUB_STEP_SUMMARY
+          echo "Secrets are scoped to the **${{ needs.set-environment.outputs.environment }}** environment." >> $GITHUB_STEP_SUMMARY
