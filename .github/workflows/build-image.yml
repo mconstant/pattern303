@@ -50,8 +50,8 @@ jobs:
             VITE_TREASURY_WALLET=${{ secrets.VITE_TREASURY_WALLET }}
             VITE_303_TOKEN_MINT=${{ secrets.VITE_303_TOKEN_MINT }}
             VITE_COLLECTION_ADDRESS=${{ secrets.VITE_COLLECTION_ADDRESS }}
+            VITE_SOLANA_NETWORK=mainnet-beta
             VITE_HELIUS_API_KEY=${{ secrets.VITE_HELIUS_API_KEY }}
-            VITE_VERIFY_API_URL=${{ secrets.VITE_VERIFY_API_URL }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -67,4 +67,12 @@ jobs:
           echo "### Deploy to Akash" >> $GITHUB_STEP_SUMMARY
           echo "1. Go to [Akash Console](https://console.akash.network)" >> $GITHUB_STEP_SUMMARY
           echo "2. Create a new deployment using \`deploy.yaml\`" >> $GITHUB_STEP_SUMMARY
-          echo "3. Update the image to: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "3. Update image: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "4. Set runtime environment variables:" >> $GITHUB_STEP_SUMMARY
+          echo "   - VITE_TREASURY_WALLET" >> $GITHUB_STEP_SUMMARY
+          echo "   - VITE_303_TOKEN_MINT" >> $GITHUB_STEP_SUMMARY
+          echo "   - VITE_COLLECTION_ADDRESS" >> $GITHUB_STEP_SUMMARY
+          echo "   - VITE_HELIUS_API_KEY" >> $GITHUB_STEP_SUMMARY
+          echo "   - COLLECTION_ADDRESS (backend)" >> $GITHUB_STEP_SUMMARY
+          echo "   - TREASURY_PRIVATE_KEY (backend)" >> $GITHUB_STEP_SUMMARY
+          echo "   - SOLANA_RPC_URL (backend)" >> $GITHUB_STEP_SUMMARY

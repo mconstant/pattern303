@@ -1,7 +1,7 @@
 # Build stage
 FROM node:20-alpine AS builder
 
-# Accept build arguments for environment variables
+# Accept build arguments for environment variables (these will be passed from GitHub secrets)
 ARG VITE_TREASURY_WALLET
 ARG VITE_303_TOKEN_MINT
 ARG VITE_COLLECTION_ADDRESS
@@ -22,12 +22,14 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Set environment variables for build
+# Set environment variables for build (Vite needs these at build time)
 ENV VITE_TREASURY_WALLET=$VITE_TREASURY_WALLET
 ENV VITE_303_TOKEN_MINT=$VITE_303_TOKEN_MINT
 ENV VITE_COLLECTION_ADDRESS=$VITE_COLLECTION_ADDRESS
+ENV VITE_SOLANA_NETWORK=$VITE_SOLANA_NETWORK
+ENV VITE_HELIUS_API_KEY=$VITE_HELIUS_API_KEY
 
-# Build the application (Vite will use env vars)
+# Build the application (Vite uses env vars during build)
 RUN npm run build
 
 # Production stage - Multi-service container
@@ -38,8 +40,8 @@ RUN apk add --no-cache nginx
 
 # Setup backend service
 WORKDIR /app/server
-COPY server/package.json ./
-RUN npm ci --production
+COPY server/package.json server/package-lock.json ./
+RUN npm ci --omit=dev
 
 COPY server/index.js ./
 
