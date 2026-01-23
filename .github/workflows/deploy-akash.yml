@@ -170,8 +170,9 @@ jobs:
           GITHUB_ENVIRONMENT: ${{ needs.set-environment.outputs.environment }}
           COLLECTION_ADDRESS: ${{ secrets.VITE_COLLECTION_ADDRESS }}
           SOLANA_RPC_URL: ${{ needs.set-environment.outputs.solana_network == 'mainnet-beta' && 'https://helius.rpc.mainnet.solana.com/?api-key=' || 'https://helius.rpc.devnet.solana.com/?api-key=' }}${{ secrets.VITE_HELIUS_API_KEY }}
-          VERIFICATION_WALLET_PKEY: ${{ secrets.VERIFICATION_WALLET_PKEY }}   
         run: |
+          # Export VERIFICATION_WALLET_PKEY separately to preserve array format
+          export VERIFICATION_WALLET_PKEY='${{ secrets.VERIFICATION_WALLET_PKEY }}'
           # Use short SHA (7 chars) to match Docker tag
           export IMAGE_TAG=$(echo "${{ github.sha }}" | cut -c1-7)
           echo "Using image tag: $IMAGE_TAG"
