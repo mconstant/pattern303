@@ -33,27 +33,52 @@ const umi = createUmi(RPC_URL).use(mplTokenMetadata());
 let treasurySigner;
 try {
   let privateKeyBytes;
+  const keyInput = VERIFICATION_WALLET_PKEY.trim();
+  
+  // Log first few chars to help debug format (safe - no actual key data)
+  console.log(`  Key input starts with: "${keyInput.substring(0, 3)}...", length: ${keyInput.length}`);
   
   // Try to parse as JSON array first
-  try {
-    const parsed = JSON.parse(VERIFICATION_WALLET_PKEY);
-    if (Array.isArray(parsed)) {
-      privateKeyBytes = new Uint8Array(parsed);
-      console.log(`  Parsed as JSON array: ${privateKeyBytes.length} bytes`);
-    } else {
-      throw new Error('Parsed value is not an array');
+  if (keyInput.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(keyInput);
+      if (Array.isArray(parsed)) {
+        privateKeyBytes = new Uint8Array(parsed);
+        console.log(`  Parsed as JSON array: ${privateKeyBytes.length} bytes`);
+      } else {
+        throw new Error('Parsed value is not an array');
+      }
+    } catch (parseError) {
+      console.log(`  JSON parse failed: ${parseError.message}`);
+      throw parseError;
     }
-  } catch (parseError) {
-    console.log(`  JSON parse failed: ${parseError.message}`);
-    // Not JSON, might be base58 encoded
-    const bs58 = await import('bs58');
-    privateKeyBytes = bs58.default.decode(VERIFICATION_WALLET_PKEY);
-    console.log(`  Decoded from base58: ${privateKeyBytes.length} bytes`);
+  } else {
+    // Try base64 first (for base64 encoded JSON arrays)
+    try {
+      const decoded = Buffer.from(keyInput, 'base64').toString('utf8');
+      console.log(`  Decoded from base64: "${decoded.substring(0, 10)}..."`);
+      const parsed = JSON.parse(decoded);
+      if (Array.isArray(parsed)) {
+        privateKeyBytes = new Uint8Array(parsed);
+        console.log(`  Parsed base64-decoded JSON array: ${privateKeyBytes.length} bytes`);
+      } else {
+        throw new Error('Base64 decoded value is not a JSON array');
+      }
+    } catch (b64Error) {
+      console.log(`  Base64 decode failed: ${b64Error.message}`);
+      // Try base58 (raw private key string)
+      const bs58 = await import('bs58');
+      privateKeyBytes = bs58.default.decode(keyInput);
+      console.log(`  Decoded from base58: ${privateKeyBytes.length} bytes`);
+    }
   }
   
   if (!privateKeyBytes || privateKeyBytes.length !== 64) {
     throw new Error(`Invalid key length: expected 64 bytes, got ${privateKeyBytes?.length || 0}`);
   }
+  
+  // Log first few bytes for debugging (safe - only first byte)
+  console.log(`  First byte: ${privateKeyBytes[0]}, last byte: ${privateKeyBytes[63]}`);
   
   // Validate key by creating a Solana keypair first
   console.log('  Validating key with Solana web3.js...');
