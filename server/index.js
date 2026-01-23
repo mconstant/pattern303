@@ -83,10 +83,11 @@ try {
   console.log(`  Bytes at position 32-34 (start of pubkey): [${privateKeyBytes[32]}, ${privateKeyBytes[33]}, ${privateKeyBytes[34]}]`);
   
   // Try to derive the public key from the seed and compare
+  let derivedKeypair;
   try {
     const nacl = await import('tweetnacl');
     const seed = privateKeyBytes.slice(0, 32);
-    const derivedKeypair = nacl.default.sign.keyPair.fromSeed(seed);
+    derivedKeypair = nacl.default.sign.keyPair.fromSeed(seed);
     const derivedPubkey = derivedKeypair.publicKey;
     const storedPubkey = privateKeyBytes.slice(32, 64);
     
@@ -96,12 +97,15 @@ try {
     if (!pubkeysMatch) {
       console.log(`  Derived pubkey first 3: [${derivedPubkey[0]}, ${derivedPubkey[1]}, ${derivedPubkey[2]}]`);
       console.log(`  Stored pubkey first 3: [${storedPubkey[0]}, ${storedPubkey[1]}, ${storedPubkey[2]}]`);
+      console.log('  ⚠️ Key mismatch! Using derived keypair instead of stored pubkey...');
+      // Use the correctly derived keypair
+      privateKeyBytes = derivedKeypair.secretKey;
     }
   } catch (naclError) {
     console.log(`  Could not verify with tweetnacl: ${naclError.message}`);
   }
   
-  // Validate key by creating a Solana keypair first
+  // Validate key by creating a Solana keypair
   console.log('  Validating key with Solana web3.js...');
   const solanaKeypair = Keypair.fromSecretKey(privateKeyBytes);
   console.log('  Solana keypair created, public key:', solanaKeypair.publicKey.toBase58());
