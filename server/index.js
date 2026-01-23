@@ -77,8 +77,29 @@ try {
     throw new Error(`Invalid key length: expected 64 bytes, got ${privateKeyBytes?.length || 0}`);
   }
   
-  // Log first few bytes for debugging (safe - only first byte)
-  console.log(`  First byte: ${privateKeyBytes[0]}, last byte: ${privateKeyBytes[63]}`);
+  // Log first and last few bytes for debugging (safe - partial data only)
+  console.log(`  First 3 bytes: [${privateKeyBytes[0]}, ${privateKeyBytes[1]}, ${privateKeyBytes[2]}]`);
+  console.log(`  Last 3 bytes: [${privateKeyBytes[61]}, ${privateKeyBytes[62]}, ${privateKeyBytes[63]}]`);
+  console.log(`  Bytes at position 32-34 (start of pubkey): [${privateKeyBytes[32]}, ${privateKeyBytes[33]}, ${privateKeyBytes[34]}]`);
+  
+  // Try to derive the public key from the seed and compare
+  try {
+    const nacl = await import('tweetnacl');
+    const seed = privateKeyBytes.slice(0, 32);
+    const derivedKeypair = nacl.default.sign.keyPair.fromSeed(seed);
+    const derivedPubkey = derivedKeypair.publicKey;
+    const storedPubkey = privateKeyBytes.slice(32, 64);
+    
+    const pubkeysMatch = derivedPubkey.every((byte, i) => byte === storedPubkey[i]);
+    console.log(`  Derived pubkey matches stored: ${pubkeysMatch}`);
+    
+    if (!pubkeysMatch) {
+      console.log(`  Derived pubkey first 3: [${derivedPubkey[0]}, ${derivedPubkey[1]}, ${derivedPubkey[2]}]`);
+      console.log(`  Stored pubkey first 3: [${storedPubkey[0]}, ${storedPubkey[1]}, ${storedPubkey[2]}]`);
+    }
+  } catch (naclError) {
+    console.log(`  Could not verify with tweetnacl: ${naclError.message}`);
+  }
   
   // Validate key by creating a Solana keypair first
   console.log('  Validating key with Solana web3.js...');
