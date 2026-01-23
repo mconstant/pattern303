@@ -18,7 +18,6 @@ const PORT = process.env.PORT || 3001;
 const RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
 const COLLECTION_ADDRESS = process.env.COLLECTION_ADDRESS;
 const VERIFICATION_WALLET_PKEY = process.env.VERIFICATION_WALLET_PKEY;
-console.log('VERIFICATION_WALLET_PKEY:', VERIFICATION_WALLET_PKEY);
 
 if (!COLLECTION_ADDRESS || !VERIFICATION_WALLET_PKEY) {
   console.error('❌ Missing required environment variables:');
