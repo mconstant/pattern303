@@ -40,8 +40,11 @@ try {
     if (Array.isArray(parsed)) {
       privateKeyBytes = new Uint8Array(parsed);
       console.log(`  Parsed as JSON array: ${privateKeyBytes.length} bytes`);
+    } else {
+      throw new Error('Parsed value is not an array');
     }
-  } catch {
+  } catch (parseError) {
+    console.log(`  JSON parse failed: ${parseError.message}`);
     // Not JSON, might be base58 encoded
     const bs58 = await import('bs58');
     privateKeyBytes = bs58.default.decode(VERIFICATION_WALLET_PKEY);
@@ -52,16 +55,22 @@ try {
     throw new Error(`Invalid key length: expected 64 bytes, got ${privateKeyBytes?.length || 0}`);
   }
   
-  // Create Umi keypair directly
-  console.log('  Creating keypair from private key...');
+  // Validate key by creating a Solana keypair first
+  console.log('  Validating key with Solana web3.js...');
+  const solanaKeypair = Keypair.fromSecretKey(privateKeyBytes);
+  console.log('  Solana keypair created, public key:', solanaKeypair.publicKey.toBase58());
+  
+  // Create Umi keypair
+  console.log('  Creating Umi keypair...');
   const keypair = umi.eddsa.createKeypairFromSecretKey(privateKeyBytes);
-  console.log('  Keypair created with public key:', keypair.publicKey.toString());
+  console.log('  Umi keypair created with public key:', keypair.publicKey);
 
   console.log('  Initializing treasury signer...');
   treasurySigner = createSignerFromKeypair(umi, keypair);
   console.log('✓ Treasury signer initialized:', treasurySigner.publicKey);
 } catch (error) {
   console.error('❌ Failed to initialize treasury signer:', error.message);
+  console.error('   Stack:', error.stack);
   process.exit(1);
 }
 
