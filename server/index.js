@@ -35,10 +35,8 @@ let treasurySigner;
 try {
   const privateKeyArray = JSON.parse(VERIFICATION_WALLET_PKEY);
   
-  // Solana keypair format: [32-byte secret key, 32-byte public key]
-  // Umi expects only the 32-byte secret key
-  const secretKey = privateKeyArray.slice(0, 32);
-  const keypair = umi.eddsa.createKeypairFromSecretKey(new Uint8Array(secretKey));
+  // Umi expects the full 64-byte Solana keypair format
+  const keypair = umi.eddsa.createKeypairFromSecretKey(new Uint8Array(privateKeyArray));
   treasurySigner = createSignerFromKeypair(umi, keypair);
   console.log('✓ Treasury signer initialized:', keypair.publicKey.toString());
 } catch (error) {
