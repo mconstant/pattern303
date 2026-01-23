@@ -53,7 +53,11 @@ try {
   }
   
   // Create Umi keypair directly
+  console.log('  Creating keypair from private key...');
   const keypair = umi.eddsa.createKeypairFromSecretKey(privateKeyBytes);
+  console.log('  Keypair created with public key:', keypair.publicKey.toString());
+
+  console.log('  Initializing treasury signer...');
   treasurySigner = createSignerFromKeypair(umi, keypair);
   console.log('✓ Treasury signer initialized:', treasurySigner.publicKey);
 } catch (error) {
