@@ -18,7 +18,6 @@ const PORT = process.env.PORT || 3001;
 const RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
 const COLLECTION_ADDRESS = process.env.COLLECTION_ADDRESS;
 const VERIFICATION_WALLET_PKEY = process.env.VERIFICATION_WALLET_PKEY;
-console.log('VERIFICATION_WALLET_PKEY:', VERIFICATION_WALLET_PKEY);
 
 if (!COLLECTION_ADDRESS || !VERIFICATION_WALLET_PKEY) {
   console.error('❌ Missing required environment variables:');
@@ -28,7 +27,6 @@ if (!COLLECTION_ADDRESS || !VERIFICATION_WALLET_PKEY) {
 }
 
 // Initialize Umi
-console.log('✓ Connecting to Solana RPC:', RPC_URL);
 const umi = createUmi(RPC_URL).use(mplTokenMetadata());
 
 // Create signer from treasury private key (base58 string)
