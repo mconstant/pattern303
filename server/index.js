@@ -27,6 +27,7 @@ if (!COLLECTION_ADDRESS || !VERIFICATION_WALLET_PKEY) {
 }
 
 // Initialize Umi
+console.log('✓ Connecting to Solana RPC:', RPC_URL);
 const umi = createUmi(RPC_URL).use(mplTokenMetadata());
 
 // Create signer from treasury private key (base58 string)
