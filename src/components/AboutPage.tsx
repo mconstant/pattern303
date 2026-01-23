@@ -3,7 +3,7 @@ import { useState } from 'react';
 type AboutTab = 'welcome' | 'museum' | 'inspiration';
 
 interface AboutPageProps {
-  onNavigate?: (page: 'create' | 'discover') => void;
+  onNavigate?: (page: 'create' | 'profile' | 'discover' | 'about') => void;
 }
 
 export function AboutPage({ onNavigate }: AboutPageProps) {
@@ -154,121 +154,16 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
       {activeTab === 'welcome' && (
         <div className="space-y-6 max-w-3xl mx-auto">
           <div className="bg-synth-panel rounded-lg p-8 space-y-4 border border-gray-700">
-            <h2 className="text-2xl font-bold text-amber-400">Hey there! Welcome to Pattern 303</h2>
+            <h2 className="text-2xl font-bold text-amber-400">Welcome to Pattern 303</h2>
 
             <p className="text-gray-300 leading-relaxed">
-              I'm <span className="text-amber-300 font-bold">mconstant</span>, and I built this site to store and organize TB-303 patterns in one place—a mobile-first webapp for programming and transcribing patterns anytime, anywhere.
+              A mobile-first webapp for storing, creating, and sharing TB-303 patterns—anytime, anywhere. Built by <span className="text-amber-300 font-bold">mconstant</span> as a love letter to the legendary Roland TB-303.
             </p>
-
-            <div className="border-l-4 border-amber-500 pl-4 py-2 bg-amber-900/20">
-              <p className="text-amber-100 italic">
-                Pattern 303 is my love letter to the legendary Roland TR-303 and its spirit of creative possibility.
-              </p>
-            </div>
-
-            <h3 className="text-xl font-bold text-amber-300 mt-6">My 303 Journey</h3>
-
-            <p className="text-gray-300 leading-relaxed">
-              While I was in engineering school, my roommate opened my eyes to the demoscene. He sat me down with demos by The Black Lotus that had that distinct acid squelch under the visuals, and I was instantly hooked by the idea that code, music, and art could collide like that.
-            </p>
-
-            <p className="text-gray-300 leading-relaxed">
-              From there I dove deep into crews like Fudge, Haujobb, CNCD, Aardbei, 3state, TPOLM, and farbrausch. If you have even a passing interest in this world, spend an evening on{' '}
-              <a
-                href="https://www.pouet.net/"
-                target="_blank"
-                rel="noreferrer"
-                className="text-amber-400 hover:text-amber-300 font-mono"
-              >
-                pouet.net
-              </a>{' '}
-              —it is a treasure trove and I cannot recommend it enough.
-            </p>
-
-            <p className="text-gray-300 leading-relaxed">
-              My relationship with the 303 started in the late '90s when I first laid hands on Propellerhead's{' '}
-              <a
-                href="https://en.wikipedia.org/wiki/ReBirth_RB-338"
-                target="_blank"
-                rel="noreferrer"
-                className="font-mono text-amber-200 hover:text-amber-100 underline"
-              >
-                ReBirth RB-338
-              </a>
-              . That software was magic—two 303 emulations, an 808, an 909, and effects—all on your computer. Sadly, it was{' '}
-              <a
-                href="https://www.reasonstudios.com/rebirth"
-                target="_blank"
-                rel="noreferrer"
-                className="font-mono text-amber-200 hover:text-amber-100 underline"
-              >
-                permanently discontinued due to copyright issues
-              </a>
-              {' '}with Roland and is no longer available. Absolute legend status nonetheless.
-            </p>
-
-            <p className="text-gray-300 leading-relaxed">
-              I was also a heavy user of Propellerhead's{' '}
-              <a
-                href="https://www.reasonstudios.com/rack"
-                target="_blank"
-                rel="noreferrer"
-                className="font-mono text-amber-200 hover:text-amber-100 underline"
-              >
-                Reason
-              </a>
-              {' '}for years—it's a full-fledged DAW that records audio and feels like a real rack of gear. The soft synth and effects side is also available as a plugin for other DAWs if that's what you prefer. Highly recommended if you want that hands-on modular workflow without the physical cables. The company is now called{' '}
-              <a
-                href="https://www.reasonstudios.com/"
-                target="_blank"
-                rel="noreferrer"
-                className="font-mono text-amber-200 hover:text-amber-100 underline"
-              >
-                Reason Studios
-              </a>
-              .
-            </p>
-
-            <p className="text-gray-300 leading-relaxed">
-              And then there was{' '}
-              <a
-                href="https://www.native-instruments.com/en/products/komplete/synths/reaktor-6/"
-                target="_blank"
-                rel="noreferrer"
-                className="font-mono text-amber-200 hover:text-amber-100 underline"
-              >
-                Reaktor
-              </a>
-              {' '}by{' '}
-              <a
-                href="https://www.native-instruments.com/"
-                target="_blank"
-                rel="noreferrer"
-                className="font-mono text-amber-200 hover:text-amber-100 underline"
-              >
-                Native Instruments
-              </a>
-              —a modular synthesis environment where you can build literally anything. Want a custom 303 with extra oscillators? A granular synth? A generative sequencer? Reaktor lets you build it from the ground up. I cannot recommend it enough for the synthesis-curious.
-            </p>
-
-            <p className="text-gray-300 leading-relaxed">
-              These tools opened my eyes to what was possible with a simple synthesizer, a filter, and a sequencer. I was captivated.
-            </p>
-
-            <p className="text-gray-300 leading-relaxed">
-              As an <span className="text-amber-200">IDM listener and electronic music enthusiast</span>, the 303 became more than just an instrument—it became a gateway. Artists like Aphex Twin, Autechre, and the whole ambient/acid house movement showed me how to push the boundaries of what this machine could do. And then there were the raves, the sweaty warehouse parties where that unmistakable <span className="italic">wobble</span> of a resonant filter sweep would make a thousand people move as one. If you've ever had a chance to be a part of making people move, using synths like this, two Tech 12s and a mixer or your voice or some instruments, this site is for you.
-            </p>
-
-            <p className="text-gray-300 leading-relaxed">
-              Every pattern I've ever created on a 303—whether it's a hypnotic acid bassline, a delicate melodic sequence, or an experimental drone—is a little piece of that journey. This site is dedicated to preserving those moments, celebrating the machine that made them possible, and inviting you to create your own.
-            </p>
-
-            <h3 className="text-xl font-bold text-amber-300 mt-6">What This Place Is</h3>
 
             <ul className="space-y-2 text-gray-300">
               <li className="flex gap-2">
                 <span className="text-amber-400">♫</span>
-                <span><span className="font-bold">Create & Edit</span> — Design your own 303 patterns with an intuitive step sequencer</span>
+                <span><span className="font-bold">Create & Edit</span> — Design patterns with an intuitive step sequencer</span>
               </li>
               <li className="flex gap-2">
                 <span className="text-amber-400">🔊</span>
@@ -276,21 +171,28 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
               </li>
               <li className="flex gap-2">
                 <span className="text-amber-400">🪙</span>
-                <span><span className="font-bold">Own Them</span> — Mint your patterns as NFTs on Solana (decentralized ownership)</span>
+                <span><span className="font-bold">Own Them</span> — Mint your patterns as NFTs on Solana</span>
               </li>
               <li className="flex gap-2">
                 <span className="text-amber-400">🌐</span>
-                <span><span className="font-bold">Share Them</span> — Discover and remix patterns created by the community</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="text-amber-400">💰</span>
-                <span><span className="font-bold">Get Perks</span> — Hold 303 tokens to mint patterns for free and get discounts</span>
+                <span><span className="font-bold">Share Them</span> — Discover and remix community patterns</span>
               </li>
             </ul>
 
-            <p className="text-gray-400 text-sm pt-4">
-              Whether you're a seasoned 303 enthusiast or just discovering the magic for the first time, there's room for you here. Create, share, and celebrate the 303 with us.
-            </p>
+            <div className="flex flex-wrap gap-4 pt-4">
+              <button
+                onClick={() => onNavigate?.('create')}
+                className="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-bold rounded-lg transition-all shadow-lg hover:shadow-xl"
+              >
+                Create a Pattern
+              </button>
+              <button
+                onClick={() => onNavigate?.('discover')}
+                className="px-6 py-3 bg-synth-panel hover:bg-gray-600 text-synth-silver font-bold rounded-lg border border-gray-600 transition-all"
+              >
+                Browse Community Patterns
+              </button>
+            </div>
 
             <div className="bg-gray-800/60 border border-amber-700 rounded-lg p-4 space-y-3 mt-4">
               <div className="flex items-center gap-2">
