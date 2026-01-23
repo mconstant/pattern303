@@ -25,8 +25,8 @@ services:
       # Backend verification service environment variables
       # Note: VITE_ vars are baked into frontend build, these are for backend runtime
       - COLLECTION_ADDRESS=${COLLECTION_ADDRESS}
-      - VERIFICATION_WALLET_PKEY="${VERIFICATION_WALLET_PKEY}"
-      - SOLANA_RPC_URL="${SOLANA_RPC_URL}"
+      - VERIFICATION_WALLET_PKEY=${VERIFICATION_WALLET_PKEY}
+      - SOLANA_RPC_URL=${SOLANA_RPC_URL}
     expose:
       - port: 80
         as: 80
