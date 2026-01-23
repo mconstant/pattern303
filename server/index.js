@@ -32,16 +32,32 @@ const umi = createUmi(RPC_URL).use(mplTokenMetadata());
 // Create signer from treasury private key
 let treasurySigner;
 try {
-  const privateKeyArray = JSON.parse(VERIFICATION_WALLET_PKEY);
+  let privateKeyBytes;
   
-  // Create Solana keypair first, then convert to Umi keypair
-  const solanaKeypair = Keypair.fromSecretKey(new Uint8Array(privateKeyArray));
-  const keypair = umi.eddsa.createKeypairFromSecretKey(solanaKeypair.secretKey);
+  // Try to parse as JSON array first
+  try {
+    const parsed = JSON.parse(VERIFICATION_WALLET_PKEY);
+    if (Array.isArray(parsed)) {
+      privateKeyBytes = new Uint8Array(parsed);
+      console.log(`  Parsed as JSON array: ${privateKeyBytes.length} bytes`);
+    }
+  } catch {
+    // Not JSON, might be base58 encoded
+    const bs58 = await import('bs58');
+    privateKeyBytes = bs58.default.decode(VERIFICATION_WALLET_PKEY);
+    console.log(`  Decoded from base58: ${privateKeyBytes.length} bytes`);
+  }
+  
+  if (!privateKeyBytes || privateKeyBytes.length !== 64) {
+    throw new Error(`Invalid key length: expected 64 bytes, got ${privateKeyBytes?.length || 0}`);
+  }
+  
+  // Create Umi keypair directly
+  const keypair = umi.eddsa.createKeypairFromSecretKey(privateKeyBytes);
   treasurySigner = createSignerFromKeypair(umi, keypair);
-  console.log('✓ Treasury signer initialized:', solanaKeypair.publicKey.toBase58());
+  console.log('✓ Treasury signer initialized:', treasurySigner.publicKey);
 } catch (error) {
   console.error('❌ Failed to initialize treasury signer:', error.message);
-  console.error('   VERIFICATION_WALLET_PKEY should be a JSON array like: [1,2,3,...]');
   process.exit(1);
 }
 
