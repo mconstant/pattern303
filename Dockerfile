@@ -35,10 +35,6 @@ RUN npm run build
 # Production stage - Multi-service container
 FROM node:20-alpine
 
-ENV SOLANA_RPC_URL=$SOLANA_RPC_URL
-ENV VERIFICATION_WALLET_PKEY=$VERIFICATION_WALLET_PKEY
-ENV COLLECTION_ADDRESS=$COLLECTION_ADDRESS
-
 # Install nginx for frontend
 RUN apk add --no-cache nginx
 
