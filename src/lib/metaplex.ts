@@ -277,10 +277,12 @@ export async function mintPatternNFT(
 
   const mintAddress = mint.publicKey.toString();
 
-  // Verify collection membership (signer must be collection update authority)
-  if (collectionMint) {
+  // Only verify collection on frontend if minter IS the treasury wallet (collection authority)
+  // Other users' NFTs are verified by the backend verification service
+  const isTreasuryWallet = TREASURY_WALLET && wallet.publicKey.toBase58() === TREASURY_WALLET;
+  if (collectionMint && isTreasuryWallet) {
     try {
-      console.log('[COLLECTION] Attempting to verify collection membership for mint:', mintAddress);
+      console.log('[COLLECTION] Treasury wallet minting - verifying collection membership for mint:', mintAddress);
       await verifyCollectionV1(umi, {
         metadata: findMetadataPda(umi, { mint: mint.publicKey }),
         collectionMint,
@@ -288,11 +290,10 @@ export async function mintPatternNFT(
       }).sendAndConfirm(umi);
       console.log('[COLLECTION] ✓ Collection verified for mint:', mintAddress);
     } catch (e) {
-      console.warn('[COLLECTION] ⚠️ Could not verify collection (you may not be the collection authority)');
-      console.warn('[COLLECTION] Your NFT was created successfully but is not verified in the collection yet.');
-      console.warn('[COLLECTION] It should still appear in "My Patterns" but may not show in "All Patterns" immediately.');
-      console.warn('[COLLECTION] Error details:', e);
+      console.warn('[COLLECTION] ⚠️ Frontend verification failed, backend will handle:', e);
     }
+  } else if (collectionMint) {
+    console.log('[COLLECTION] Non-treasury mint - backend verification service will verify collection membership');
   }
 
   const signatureStr = Buffer.from(signature).toString('base64');
@@ -365,10 +366,12 @@ export async function mintPatternNFTFree(
 
   const mintAddress = mint.publicKey.toString();
 
-  // Verify collection membership (signer must be collection update authority)
-  if (collectionMint) {
+  // Only verify collection on frontend if minter IS the treasury wallet (collection authority)
+  // Other users' NFTs are verified by the backend verification service
+  const isTreasuryWallet = TREASURY_WALLET && wallet.publicKey.toBase58() === TREASURY_WALLET;
+  if (collectionMint && isTreasuryWallet) {
     try {
-      console.log('[COLLECTION] Attempting to verify collection membership for mint:', mintAddress);
+      console.log('[COLLECTION] Treasury wallet minting - verifying collection membership for mint:', mintAddress);
       await verifyCollectionV1(umi, {
         metadata: findMetadataPda(umi, { mint: mint.publicKey }),
         collectionMint,
@@ -376,11 +379,10 @@ export async function mintPatternNFTFree(
       }).sendAndConfirm(umi);
       console.log('[COLLECTION] ✓ Collection verified for mint:', mintAddress);
     } catch (e) {
-      console.warn('[COLLECTION] ⚠️ Could not verify collection (you may not be the collection authority)');
-      console.warn('[COLLECTION] Your NFT was created successfully but is not verified in the collection yet.');
-      console.warn('[COLLECTION] It should still appear in "My Patterns" but may not show in "All Patterns" immediately.');
-      console.warn('[COLLECTION] Error details:', e);
+      console.warn('[COLLECTION] ⚠️ Frontend verification failed, backend will handle:', e);
     }
+  } else if (collectionMint) {
+    console.log('[COLLECTION] Non-treasury mint - backend verification service will verify collection membership');
   }
 
   const signatureStr = Buffer.from(signature).toString('base64');
