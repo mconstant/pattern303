@@ -7,7 +7,7 @@ import {
   mplTokenMetadata 
 } from '@metaplex-foundation/mpl-token-metadata';
 import { createSignerFromKeypair, publicKey } from '@metaplex-foundation/umi';
-import { PublicKey } from '@solana/web3.js';
+import { Keypair, PublicKey } from '@solana/web3.js';
 
 const app = express();
 app.use(cors());
@@ -30,15 +30,16 @@ if (!COLLECTION_ADDRESS || !VERIFICATION_WALLET_PKEY) {
 // Initialize Umi
 const umi = createUmi(RPC_URL).use(mplTokenMetadata());
 
-// Create signer from treasury private key (base58 string)
+// Create signer from treasury private key
 let treasurySigner;
 try {
   const privateKeyArray = JSON.parse(VERIFICATION_WALLET_PKEY);
   
-  // Umi expects the full 64-byte Solana keypair format
-  const keypair = umi.eddsa.createKeypairFromSecretKey(new Uint8Array(privateKeyArray));
+  // Create Solana keypair first, then convert to Umi keypair
+  const solanaKeypair = Keypair.fromSecretKey(new Uint8Array(privateKeyArray));
+  const keypair = umi.eddsa.createKeypairFromSecretKey(solanaKeypair.secretKey);
   treasurySigner = createSignerFromKeypair(umi, keypair);
-  console.log('✓ Treasury signer initialized:', keypair.publicKey.toString());
+  console.log('✓ Treasury signer initialized:', solanaKeypair.publicKey.toBase58());
 } catch (error) {
   console.error('❌ Failed to initialize treasury signer:', error.message);
   console.error('   VERIFICATION_WALLET_PKEY should be a JSON array like: [1,2,3,...]');
