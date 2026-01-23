@@ -33,11 +33,7 @@ const umi = createUmi(RPC_URL).use(mplTokenMetadata());
 // Create signer from treasury private key (base58 string)
 let treasurySigner;
 try {
-  console.log('Raw VERIFICATION_WALLET_PKEY:', VERIFICATION_WALLET_PKEY);
-  console.log('Type:', typeof VERIFICATION_WALLET_PKEY);
   const privateKeyArray = JSON.parse(VERIFICATION_WALLET_PKEY);
-  console.log('Parsed array length:', privateKeyArray.length);
-  console.log('First 5 bytes:', privateKeyArray.slice(0, 5));
   
   // Solana keypair format: [32-byte secret key, 32-byte public key]
   // Umi expects only the 32-byte secret key
