@@ -35,6 +35,12 @@ services:
         accept:
           - p303.xyz
           - www.p303.xyz
+      # Backend verification service port
+      # Security: Rate limited (10 req/min), validates P303 NFTs only
+      - port: 3001
+        as: 3001
+        to:
+          - global: true
 
 
 profiles:
@@ -44,7 +50,7 @@ profiles:
         cpu:
           units: 0.5
         memory:
-          size: 512Mi
+          size: 600Mi
         storage:
           size: 1Gi
 
