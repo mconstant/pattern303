@@ -115,6 +115,7 @@ jobs:
             VITE_COLLECTION_ADDRESS=${{ secrets.VITE_COLLECTION_ADDRESS }}
             VITE_SOLANA_NETWORK=${{ needs.set-environment.outputs.solana_network }}
             VITE_HELIUS_API_KEY=${{ secrets.VITE_HELIUS_API_KEY }}
+            VITE_VERIFY_API_URL=${{ secrets.VITE_VERIFY_API_URL }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
