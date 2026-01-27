@@ -10,7 +10,7 @@ All code changes for the backend verification service have been implemented and 
 
 Add these secrets to your GitHub repository (Settings → Secrets and variables → Actions → Secrets):
 
-- [ ] **VITE_VERIFY_API_URL** - Your production domain (e.g., `https://p303.xyz`)
+- [x] **VITE_VERIFY_API_URL** - Your production domain (e.g., `https://p303.xyz`)
   ```bash
   gh secret set VITE_VERIFY_API_URL -b "https://p303.xyz"
   ```
