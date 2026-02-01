@@ -2,6 +2,7 @@ import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
 import {
   createNft,
   burnV1,
+  updateV1,
   mplTokenMetadata,
   TokenStandard,
   verifyCollectionV1,
@@ -423,6 +424,36 @@ export interface BurnResult {
 }
 
 // Burn a Pattern 303 NFT
+// Transfer collection update authority to a new wallet
+export async function transferCollectionAuthority(
+  wallet: WalletContextState,
+  collectionMintAddress: string,
+  newAuthorityAddress: string,
+  network: NetworkType
+): Promise<string> {
+  if (!wallet.publicKey || !wallet.signTransaction) {
+    throw new Error('Wallet not connected');
+  }
+
+  const endpoint = SOLANA_NETWORKS[network];
+
+  const umi = createUmi(endpoint)
+    .use(mplTokenMetadata())
+    .use(walletAdapterIdentity(wallet));
+
+  const collectionMint = publicKey(collectionMintAddress);
+  const newAuthority = publicKey(newAuthorityAddress);
+
+  const { signature } = await updateV1(umi, {
+    mint: collectionMint,
+    authority: umi.identity,
+    newUpdateAuthority: newAuthority,
+    data: undefined,
+  }).sendAndConfirm(umi);
+
+  return Buffer.from(signature).toString('base64');
+}
+
 export async function burnPatternNFT(
   wallet: WalletContextState,
   mintAddress: string,

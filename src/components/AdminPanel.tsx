@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { createCollectionNFT, getCollectionAddress } from '../lib/metaplex';
+import { createCollectionNFT, getCollectionAddress, transferCollectionAuthority } from '../lib/metaplex';
 import { TREASURY_WALLET, TOKEN_303_MINT } from '../lib/constants';
 
 interface AdminPanelProps {
@@ -12,6 +12,10 @@ export function AdminPanel({ onClose }: AdminPanelProps) {
   const [creating, setCreating] = useState(false);
   const [result, setResult] = useState<{ address: string; explorerUrl: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const [transferring, setTransferring] = useState(false);
+  const [transferResult, setTransferResult] = useState<string | null>(null);
+  const [transferError, setTransferError] = useState<string | null>(null);
 
   const [serviceHealth, setServiceHealth] = useState<{
     authority?: string;
@@ -59,6 +63,28 @@ export function AdminPanel({ onClose }: AdminPanelProps) {
       setError(e instanceof Error ? e.message : 'Failed to create collection');
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleTransferAuthority = async () => {
+    if (!serviceHealth?.authority || !currentCollection) return;
+
+    setTransferring(true);
+    setTransferError(null);
+    setTransferResult(null);
+
+    try {
+      await transferCollectionAuthority(
+        wallet,
+        currentCollection,
+        serviceHealth.authority,
+        'mainnet-beta'
+      );
+      setTransferResult(serviceHealth.authority);
+    } catch (e) {
+      setTransferError(e instanceof Error ? e.message : 'Transfer failed');
+    } finally {
+      setTransferring(false);
     }
   };
 
@@ -144,6 +170,36 @@ export function AdminPanel({ onClose }: AdminPanelProps) {
                 >
                   View on Explorer
                 </a>
+
+                {/* Transfer authority to verification wallet */}
+                {serviceHealth?.authority && !transferResult && (
+                  <div className="mt-3 pt-3 border-t border-gray-700">
+                    <p className="text-xs text-gray-400 mb-2">
+                      Transfer update authority to the verification service wallet so it can verify NFTs into this collection.
+                    </p>
+                    <p className="text-xs text-gray-500 mb-2 font-mono break-all">
+                      {serviceHealth.authority}
+                    </p>
+                    <button
+                      onClick={handleTransferAuthority}
+                      disabled={transferring}
+                      className="w-full px-3 py-2 bg-amber-600 text-white text-sm font-semibold rounded-lg hover:bg-amber-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {transferring ? 'Transferring...' : 'Transfer Authority to Verification Wallet'}
+                    </button>
+                    {transferError && (
+                      <p className="mt-2 text-red-400 text-xs">{transferError}</p>
+                    )}
+                  </div>
+                )}
+                {transferResult && (
+                  <div className="mt-3 pt-3 border-t border-gray-700">
+                    <p className="text-green-400 text-sm">Authority transferred successfully</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      New authority: <span className="font-mono">{transferResult}</span>
+                    </p>
+                  </div>
+                )}
               </div>
             ) : (
               <p className="text-amber-400 text-sm">No collection configured</p>
