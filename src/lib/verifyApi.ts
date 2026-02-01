@@ -1,6 +1,6 @@
 // API client for Pattern 303 verification service
 
-const VERIFY_API_URL = import.meta.env.VITE_VERIFY_API_URL || 'http://0.0.0.0:3001';
+const VERIFY_API_URL = import.meta.env.VITE_VERIFY_API_URL || '/api';
 
 export interface VerifyResponse {
   success: boolean;
