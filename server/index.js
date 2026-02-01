@@ -6,7 +6,7 @@ import {
   findMetadataPda,
   mplTokenMetadata 
 } from '@metaplex-foundation/mpl-token-metadata';
-import { createSignerFromKeypair, publicKey } from '@metaplex-foundation/umi';
+import { createSignerFromKeypair, signerIdentity, publicKey } from '@metaplex-foundation/umi';
 import { Keypair, PublicKey } from '@solana/web3.js';
 
 const app = express();
@@ -117,6 +117,7 @@ try {
 
   console.log('  Initializing treasury signer...');
   treasurySigner = createSignerFromKeypair(umi, keypair);
+  umi.use(signerIdentity(treasurySigner));
   console.log('✓ Treasury signer initialized:', treasurySigner.publicKey);
 } catch (error) {
   console.error('❌ Failed to initialize treasury signer:', error.message);
