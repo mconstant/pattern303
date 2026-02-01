@@ -49,7 +49,7 @@ profiles:
         cpu:
           units: 0.5
         memory:
-          size: 600Mi
+          size: 500Mi
         storage:
           size: 1Gi
 
