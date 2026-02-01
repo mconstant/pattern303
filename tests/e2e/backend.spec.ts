@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 // These tests require the backend verification service to be running
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://0.0.0.0:3001';
 
 test.describe('Backend Verification Service', () => {
   test('should respond to health check', async ({ request }) => {

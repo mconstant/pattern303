@@ -41,10 +41,6 @@ services:
         as: 3001
         to:
           - global: true
-        accept:
-          - p303.xyz
-          - www.p303.xyz
-
 
 profiles:
   compute:

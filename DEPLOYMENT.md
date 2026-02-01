@@ -74,7 +74,7 @@ VITE_TREASURY_WALLET=FkzL39Ww8pSDFcHuPSypGechS3EP9RE8FtsiYDtauUE2
 VITE_303_TOKEN_MINT=your_token
 VITE_COLLECTION_ADDRESS=EZPiXbhJ5MMdQ79ATXmtQx1xVaC9yB5r19CSLxXRkcmz
 VITE_HELIUS_API_KEY=your_key
-VITE_VERIFY_API_URL=http://localhost:3001
+VITE_VERIFY_API_URL=http://0.0.0.0:3001
 
 # Backend vars (for local testing)
 COLLECTION_ADDRESS=EZPiXbhJ5MMdQ79ATXmtQx1xVaC9yB5r19CSLxXRkcmz
@@ -93,8 +93,8 @@ cd server
 npm run dev
 ```
 
-Frontend: http://localhost:5173  
-Backend: http://localhost:3001
+Frontend: http://0.0.0.0:5173  
+Backend: http://0.0.0.0:3001
 
 ## Docker Build
 

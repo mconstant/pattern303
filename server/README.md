@@ -28,7 +28,7 @@ npm install
 npm run dev
 ```
 
-The service will run on http://localhost:3001
+The service will run on http://0.0.0.0:3001
 
 ## API Endpoints
 

@@ -114,7 +114,7 @@ test.describe('Feature Name', () => {
 
 ```typescript
 test('should test API endpoint', async ({ request }) => {
-  const response = await request.get('http://localhost:3001/health');
+  const response = await request.get('http://0.0.0.0:3001/health');
   expect(response.ok()).toBeTruthy();
   
   const data = await response.json();
@@ -158,8 +158,8 @@ Edit `playwright.config.ts` to customize:
 ## Environment Variables
 
 ```bash
-BASE_URL=http://localhost:5173    # Frontend URL
-BACKEND_URL=http://localhost:3001 # Backend URL
+BASE_URL=http://0.0.0.0:5173    # Frontend URL
+BACKEND_URL=http://0.0.0.0:3001 # Backend URL
 CI=true                            # CI mode (more retries, stricter)
 ```
 

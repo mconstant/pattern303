@@ -7,7 +7,7 @@ echo ""
 
 # Check if backend is running
 echo "1️⃣ Checking backend health..."
-HEALTH=$(curl -s http://localhost:3001/health)
+HEALTH=$(curl -s http://0.0.0.0:3001/health)
 
 if [ $? -eq 0 ]; then
   echo "✅ Backend is running"
@@ -22,7 +22,7 @@ echo ""
 echo "2️⃣ Testing verification endpoint..."
 
 # Test with a fake mint (will fail validation but tests the endpoint)
-RESPONSE=$(curl -s -X POST http://localhost:3001/verify-pattern \
+RESPONSE=$(curl -s -X POST http://0.0.0.0:3001/verify-pattern \
   -H "Content-Type: application/json" \
   -d '{"mintAddress":"11111111111111111111111111111111"}')
 
@@ -38,7 +38,7 @@ echo ""
 echo "3️⃣ Testing rate limiting..."
 
 for i in {1..12}; do
-  STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:3001/verify-pattern \
+  STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://0.0.0.0:3001/verify-pattern \
     -H "Content-Type: application/json" \
     -d '{"mintAddress":"test"}')
   
