@@ -80,9 +80,9 @@ export function useDiscoverPatterns(network: NetworkType) {
       const recent = await fetchRecentPatterns(network, 50);
       setPatterns(recent);
 
-      // Sync creators from the discovered patterns
+      // Sync creators from the discovered patterns (fetches NDGs from chain)
       if (recent.length > 0) {
-        syncCreatorsFromPatterns(recent);
+        await syncCreatorsFromPatterns(recent);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to fetch patterns');

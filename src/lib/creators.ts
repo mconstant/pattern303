@@ -341,7 +341,7 @@ export function syncCreatorsFromMints() {
 }
 
 // Sync creators from discovered patterns (from collection query)
-export function syncCreatorsFromPatterns(patterns: PatternNFT[]) {
+export async function syncCreatorsFromPatterns(patterns: PatternNFT[]) {
   if (!patterns || patterns.length === 0) return;
 
   const creators = getCreators();
@@ -359,6 +359,7 @@ export function syncCreatorsFromPatterns(patterns: PatternNFT[]) {
   }
 
   // Update or create creators
+  const needsNdgFetch: string[] = [];
   for (const [owner, ownerPats] of Object.entries(ownerPatterns)) {
     const count = ownerPats.length;
 
@@ -366,6 +367,9 @@ export function syncCreatorsFromPatterns(patterns: PatternNFT[]) {
       // Update existing creator with potentially higher count
       creators[owner].patternCount = Math.max(creators[owner].patternCount, count);
       creators[owner].lastActive = now;
+      if (!creators[owner].nomDeGuerre) {
+        needsNdgFetch.push(owner);
+      }
     } else {
       // Create new creator
       creators[owner] = {
@@ -378,9 +382,34 @@ export function syncCreatorsFromPatterns(patterns: PatternNFT[]) {
         firstSeen: now,
         lastActive: now,
       };
+      needsNdgFetch.push(owner);
     }
   }
 
   saveCreators(creators);
   console.log(`Synced ${Object.keys(ownerPatterns).length} creators from ${patterns.length} patterns`);
+
+  // Fetch NDGs from chain for creators missing them (batched)
+  if (needsNdgFetch.length > 0) {
+    const BATCH_SIZE = 5;
+    for (let i = 0; i < needsNdgFetch.length; i += BATCH_SIZE) {
+      const batch = needsNdgFetch.slice(i, i + BATCH_SIZE);
+      const results = await Promise.allSettled(
+        batch.map(addr => fetchUserNomDeGuerre(addr, 'mainnet-beta'))
+      );
+
+      let updated = false;
+      const freshCreators = getCreators();
+      for (let j = 0; j < batch.length; j++) {
+        const result = results[j];
+        if (result.status === 'fulfilled' && result.value && freshCreators[batch[j]]) {
+          freshCreators[batch[j]].nomDeGuerre = result.value.username;
+          updated = true;
+        }
+      }
+      if (updated) {
+        saveCreators(freshCreators);
+      }
+    }
+  }
 }
