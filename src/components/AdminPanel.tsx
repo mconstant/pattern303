@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { createCollectionNFT, getCollectionAddress } from '../lib/metaplex';
 import { TREASURY_WALLET, TOKEN_303_MINT } from '../lib/constants';
@@ -13,9 +13,24 @@ export function AdminPanel({ onClose }: AdminPanelProps) {
   const [result, setResult] = useState<{ address: string; explorerUrl: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const [serviceHealth, setServiceHealth] = useState<{
+    authority?: string;
+    balanceSol?: number | null;
+    status?: string;
+  } | null>(null);
+  const [serviceLoading, setServiceLoading] = useState(true);
+
   const currentCollection = getCollectionAddress();
   const walletAddress = wallet.publicKey?.toBase58();
   const isTreasury = walletAddress && TREASURY_WALLET && walletAddress === TREASURY_WALLET;
+
+  useEffect(() => {
+    fetch('/api/health')
+      .then(r => r.json())
+      .then(data => setServiceHealth(data))
+      .catch(() => setServiceHealth(null))
+      .finally(() => setServiceLoading(false));
+  }, []);
 
   // Don't render if not treasury wallet
   if (!isTreasury) {
@@ -61,6 +76,57 @@ export function AdminPanel({ onClose }: AdminPanelProps) {
         </div>
 
         <div className="space-y-6">
+          {/* Verification Service Status */}
+          <div className="bg-synth-dark rounded-lg p-4">
+            <h3 className="text-sm font-semibold text-gray-400 mb-2">Verification Service</h3>
+            {serviceLoading ? (
+              <p className="text-gray-500 text-sm">Checking service...</p>
+            ) : serviceHealth ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-green-400 inline-block" />
+                  <span className="text-green-400 text-sm">Online</span>
+                </div>
+                {serviceHealth.authority && (
+                  <div>
+                    <p className="text-xs text-gray-400 mb-1">Signing Wallet</p>
+                    <div className="bg-black/30 rounded p-2">
+                      <code className="text-xs text-synth-silver break-all">{serviceHealth.authority}</code>
+                    </div>
+                    <a
+                      href={`https://explorer.solana.com/address/${serviceHealth.authority}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-synth-accent hover:underline"
+                    >
+                      View on Explorer
+                    </a>
+                  </div>
+                )}
+                <div>
+                  <p className="text-xs text-gray-400 mb-1">SOL Balance</p>
+                  {serviceHealth.balanceSol != null ? (
+                    <p className={`text-sm font-mono ${serviceHealth.balanceSol < 0.01 ? 'text-red-400' : serviceHealth.balanceSol < 0.05 ? 'text-amber-400' : 'text-green-400'}`}>
+                      {serviceHealth.balanceSol.toFixed(4)} SOL
+                    </p>
+                  ) : (
+                    <p className="text-gray-500 text-sm">Unable to fetch balance</p>
+                  )}
+                  {serviceHealth.balanceSol != null && serviceHealth.balanceSol < 0.01 && (
+                    <p className="text-red-400 text-xs mt-1">
+                      Low balance — send SOL to the signing wallet to enable verifications
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-red-400 inline-block" />
+                <span className="text-red-400 text-sm">Offline — service unreachable</span>
+              </div>
+            )}
+          </div>
+
           {/* Current Collection Status */}
           <div className="bg-synth-dark rounded-lg p-4">
             <h3 className="text-sm font-semibold text-gray-400 mb-2">Collection Status</h3>

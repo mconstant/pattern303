@@ -7,7 +7,7 @@ import {
   mplTokenMetadata 
 } from '@metaplex-foundation/mpl-token-metadata';
 import { createSignerFromKeypair, signerIdentity, publicKey } from '@metaplex-foundation/umi';
-import { Keypair, PublicKey } from '@solana/web3.js';
+import { Connection, Keypair, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 
 const app = express();
 app.use(cors());
@@ -147,12 +147,27 @@ function checkRateLimit(ip) {
 }
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    collection: COLLECTION_ADDRESS,
-    authority: treasurySigner.publicKey.toString()
-  });
+const connection = new Connection(RPC_URL);
+app.get('/health', async (req, res) => {
+  try {
+    const authorityAddress = treasurySigner.publicKey.toString();
+    const balanceLamports = await connection.getBalance(new PublicKey(authorityAddress));
+    res.json({
+      status: 'ok',
+      collection: COLLECTION_ADDRESS,
+      authority: authorityAddress,
+      balanceLamports,
+      balanceSol: balanceLamports / LAMPORTS_PER_SOL,
+    });
+  } catch (error) {
+    res.json({
+      status: 'ok',
+      collection: COLLECTION_ADDRESS,
+      authority: treasurySigner.publicKey.toString(),
+      balanceSol: null,
+      balanceError: error.message,
+    });
+  }
 });
 
 // Verify pattern NFT into collection
