@@ -140,7 +140,12 @@ jobs:
 
       - name: Install Akash provider-services CLI
         run: |
-          curl -sfL https://raw.githubusercontent.com/akash-network/provider/main/install.sh | bash
+          # Pin to v0.11.2 — newer versions default deposit denom to "uact"
+          # and fail with "Mismatched denominations (uact != uakt)".
+          PROVIDER_VERSION="0.11.2"
+          curl -sL "https://github.com/akash-network/provider/releases/download/v${PROVIDER_VERSION}/provider-services_${PROVIDER_VERSION}_linux_amd64.zip" -o provider-services.zip
+          unzip -o provider-services.zip -d ./bin
+          chmod +x ./bin/provider-services
           sudo mv ./bin/provider-services /usr/local/bin
           provider-services version
 
