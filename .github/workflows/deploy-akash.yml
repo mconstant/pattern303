@@ -361,8 +361,62 @@ jobs:
             echo "Deployment complete! DSEQ: $DSEQ"
           fi
 
-          # Clean up password file
+          # Export DSEQ for the DNS step (password file is cleaned up there).
+          echo "DEPLOY_DSEQ=$DSEQ" >> "$GITHUB_ENV"
+
+      - name: Update DNS (Cloudflare)
+        if: github.event.inputs.action != 'close'
+        continue-on-error: true
+        env:
+          AKASH_NODE: ${{ secrets.AKASH_NODE }}
+          AKASH_CHAIN_ID: ${{ secrets.AKASH_CHAIN_ID }}
+          AKASH_KEYRING_BACKEND: file
+          AKASH_FROM: ${{ secrets.AKASH_ACCOUNT_ADDRESS }}
+          AKASH_KEY_PASSWORD: ${{ secrets.AKASH_KEY_PASSWORD }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        run: |
+          ENV="${{ needs.set-environment.outputs.environment }}"
+          DSEQ="${DEPLOY_DSEQ:-${{ secrets.AKASH_DEPLOYMENT_DSEQ }}}"
+
+          if [ -z "$DSEQ" ]; then
+            echo "No DSEQ, skipping DNS"
+            rm -f /tmp/akash_pass.txt
+            exit 0
+          fi
+          echo "Using DSEQ: $DSEQ"
+
+          if [ ! -f /tmp/akash_pass.txt ]; then
+            for i in {1..10}; do echo "$AKASH_KEY_PASSWORD"; done > /tmp/akash_pass.txt
+          fi
+
+          PROVIDER=$(provider-services query market lease list \
+            --owner $AKASH_FROM --dseq $DSEQ --state active -o json \
+            | jq -r '.leases[0].lease.lease.id.provider // .leases[0].lease.id.provider')
+
+          SERVICE_STATUS=$(provider-services lease-status \
+            --dseq $DSEQ \
+            --provider $PROVIDER \
+            --from "$KEY_NAME" < /tmp/akash_pass.txt 2>/dev/null || echo "{}")
+
+          INGRESS_URI=$(echo "$SERVICE_STATUS" | jq -r '.forwarded_ports.web[0].host // .services.web.uris[0] // empty')
+
           rm -f /tmp/akash_pass.txt
+
+          if [ -z "$INGRESS_URI" ]; then
+            echo "Could not determine ingress URI, skipping DNS"
+            exit 0
+          fi
+
+          echo "Ingress URI: $INGRESS_URI"
+
+          SUBDOMAIN=""
+          if [ "$ENV" != "prod" ]; then
+            SUBDOMAIN="$ENV"
+          fi
+
+          chmod +x ./scripts/infra/update_cf_dns.sh
+          ./scripts/infra/update_cf_dns.sh "$SUBDOMAIN" "$INGRESS_URI"
 
       - name: Close deployment
         if: github.event.inputs.action == 'close'
