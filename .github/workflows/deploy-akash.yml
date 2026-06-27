@@ -399,7 +399,10 @@ jobs:
             --provider $PROVIDER \
             --from "$KEY_NAME" < /tmp/akash_pass.txt 2>/dev/null || echo "{}")
 
-          INGRESS_URI=$(echo "$SERVICE_STATUS" | jq -r '.forwarded_ports.web[0].host // .services.web.uris[0] // empty')
+          # Prefer the per-deployment subdomain (services.web.uris[0]) over the
+          # bare provider hostname (forwarded_ports.web[0].host) so routing
+          # doesn't depend on Host-header collision avoidance with other tenants.
+          INGRESS_URI=$(echo "$SERVICE_STATUS" | jq -r '.services.web.uris[0] // .forwarded_ports.web[0].host // empty')
 
           rm -f /tmp/akash_pass.txt
 
