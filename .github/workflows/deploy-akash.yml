@@ -262,8 +262,13 @@ jobs:
             echo "Deployment $DSEQ updated"
           else
             echo "Creating new $ENV deployment..."
+            # Explicit --deposit in uakt: wallet holds both uact and uakt, and
+            # provider-services v0.11.2 otherwise picks uact, which mismatches
+            # the SDL placement pricing (uakt) and the chain rejects with
+            # "Mismatched denominations (uact != uakt): Deposit invalid".
             provider-services tx deployment create deploy-final.yaml \
               --from "$KEY_NAME" \
+              --deposit 5000000uakt \
               -y < /tmp/akash_pass.txt
 
             # Wait for deployment to be indexed
